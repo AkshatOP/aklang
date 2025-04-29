@@ -1,0 +1,26 @@
+export const TokenTypes = {
+    NULL_TYPE: null,
+  
+    SCENE_SHURU: "scene shuru",
+    SCENE_KHATAM: "scene khatam",
+    YAAD_RAKH: "yaad rakh",
+    BOL: "bol",
+    AGAR: "agar",
+    WARNA: "warna",
+    JAB_TAK: "jab tak",
+    AB_BAS: "ab bas ",
+    AGLA_DEKH: "agla dekh ",
+  
+    SEMI_COLON_TYPE: ";",
+    OPEN_CURLY_BRACE_TYPE: "{",
+    CLOSED_CURLY_BRACE_TYPE: "}",
+    OPEN_PARENTHESIS_TYPE: "(",
+    CLOSED_PARENTHESIS_TYPE: ")",
+    COMMA_TYPE: ",",
+
+    IDENTIFIER_TYPE: "IDENTIFIER",
+    EQUALITY_OPERATOR: "EQUALITY_OPERATOR",
+    STRING_TYPE: "STRING",
+
+  };
+  
