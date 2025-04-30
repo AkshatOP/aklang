@@ -1,5 +1,4 @@
 scene shuru
-    bol "Hello, World!";
-    bol a,b;
-    bol 3;
+    c = 3 + 4;
+    c += 3;
 scene khatam

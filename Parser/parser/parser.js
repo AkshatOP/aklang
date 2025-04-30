@@ -41,12 +41,15 @@ export class Parser {
         return this.parseVariableDeclaration();
 
       default:
-        // return this.expressionStatement();
-        throw new SyntaxError(`Unexpected token: ${this._lookahead.type}`);
+        return this.expressionStatement();
+        //throw new SyntaxError(`Unexpected token: ${this._lookahead.type}`);
       
     }
 
   }
+
+
+  //Print statement
 
   parsePrintStatement() {
     this._eat(TokenTypes.BOL);
@@ -63,6 +66,8 @@ export class Parser {
     };
 
   }
+
+  //Variable Declaration
 
   parseVariableDeclaration() {
 
@@ -121,6 +126,31 @@ export class Parser {
     };
   }
 
+
+  //Expression Statement
+
+  expressionStatement() {
+    const left = this._parsePrimaryExpression();
+
+    let init;
+    let operator;
+    if (this._lookahead?.type === TokenTypes.SIMPLE_ASSIGN_TYPE || this._lookahead?.type === TokenTypes.COMPLEX_ASSIGN_TYPE) {
+       operator = this._eat(this._lookahead.type); // Eat the assignment operator
+      init = this.parseExpression(); // Parse the initializer expression
+    }
+    this._eat(TokenTypes.SEMI_COLON_TYPE);
+
+    return {
+      type: NodeType.ExpressionStatement,
+      operator: operator?.value,
+      expression: init,
+    }
+
+  }
+
+
+  //Parse Expression
+
   parseExpressionList() {
     const ExpressionList = [];
 
@@ -139,20 +169,15 @@ export class Parser {
   }
 
 
-  parseAssignmentExpression() {
-    
+  parseAssignmentExpression() { 
     const left = this.parseBinaryExpression();
-
-
-
     return left;
-    
   }
 
 
   parseBinaryExpression() {
     let left = this._parsePrimaryExpression();
-   
+    
     while (this._isBinaryOperator(this._lookahead?.type)) {
       
       const operator = this._eat(this._lookahead.type);
