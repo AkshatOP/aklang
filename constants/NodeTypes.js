@@ -3,6 +3,8 @@ export const NodeType = {
   BlockStatement: "BlockStatement",
   RelationalExpression: "RelationalExpression",
   EqualityExpression: "EqualityExpression",
+  InitStatement: "InitStatement",
+  EmptyStatement: "EmptyStatement",
   VariableDeclaration: "VariableDeclaration",
   NumericLiteral: "NumericLiteral",
   AssignmentExpression: "AssignmentExpression",

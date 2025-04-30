@@ -40,10 +40,21 @@ export class Parser {
 
       case TokenTypes.AGAR:
         return this.parseIfStatement();
+      
+      case TokenTypes.JAB_TAK:
+        return this.parseWhileStatement();
+
+      case TokenTypes.AB_BAS:
+        return this.parseBreakStatement();
+      
+      case TokenTypes.AGLA_DEKH:
+        return this.parseContinueStatement();
+
+      case TokenTypes.SEMI_COLON_TYPE:
+        return this.parseEmptyStatement();
 
       default:
         return this.expressionStatement();
-        //throw new SyntaxError(`Unexpected token: ${this._lookahead.type}`);
       
     }
 
@@ -126,27 +137,54 @@ export class Parser {
   }
 
 
-  //Expression Statement
+  // While Statement
 
-  expressionStatement() {
-    const left = this._parsePrimaryExpression();
+  parseWhileStatement() {
+    this._eat(TokenTypes.JAB_TAK);
+    this._eat(TokenTypes.OPEN_PARENTHESIS_TYPE);
 
-    let init;
-    let operator;
-    if (this._lookahead?.type === TokenTypes.SIMPLE_ASSIGN_TYPE || this._lookahead?.type === TokenTypes.COMPLEX_ASSIGN_TYPE) {
-       operator = this._eat(this._lookahead.type); // Eat the assignment operator
-      init = this.parseExpression(); // Parse the initializer expression
-    }
-    this._eat(TokenTypes.SEMI_COLON_TYPE);
+    const test = this.parseBinaryRelationalExpression();
+    this._eat(TokenTypes.CLOSED_PARENTHESIS_TYPE);
+
+    const body = this.parseBlockStatement();
 
     return {
-      type: NodeType.ExpressionStatement,
-      operator: operator?.value,
-      expression: init,
-    }
-
+      type: NodeType.WhileStatement,
+      test,
+      body,
+    };
   }
 
+  // Break Statement
+
+  parseBreakStatement() {
+    this._eat(TokenTypes.AB_BAS);
+
+
+    return {
+      type: NodeType.BreakStatement,
+    };
+  }
+
+  // Continue Statement
+
+  parseContinueStatement() {
+    this._eat(TokenTypes.AGLA_DEKH);
+
+
+    return {
+      type: NodeType.ContinueStatement,
+    };
+  }
+
+  //Empty Statement
+
+  parseEmptyStatement() {
+    this._eat(TokenTypes.SEMI_COLON_TYPE); // Consume the semicolon
+    return {
+        type: NodeType.EmptyStatement,
+    };
+}
 
   //If Statement
 
@@ -204,7 +242,18 @@ export class Parser {
     
   }
 
-  
+  //Expression Statement
+
+  expressionStatement() {
+    
+    let init = this.parseAssignmentExpression();
+    return {
+      type: NodeType.ExpressionStatement,
+      expression: init,
+    }
+
+  }
+
 
 
   //Parse Expression
@@ -223,23 +272,17 @@ export class Parser {
   }
 
   parseExpression() {
-    return this.parseAssignmentExpression();
+    return this.parseBinaryExpression();
   }
 
-
-  parseAssignmentExpression() { 
-    const left = this.parseBinaryExpression();
-    return left;
-  }
 
 
   parseBinaryExpression() {
     let left = this._parsePrimaryExpression();
     
     while (this._isBinaryOperator(this._lookahead?.type)) {
-      
-      const operator = this._eat(this._lookahead.type);
-      
+
+      const operator = this._eat(this._lookahead.type);      
       const right = this._parsePrimaryExpression();
   
       left = {
@@ -255,8 +298,7 @@ export class Parser {
 
   // Block Statement
 
-  parseBlockStatement() {
-    
+  parseBlockStatement() {   
     this._eat(TokenTypes.OPEN_CURLY_BRACE_TYPE);
     const body = [];
 
@@ -275,12 +317,9 @@ export class Parser {
   // Parse Binary Relational Expression
 
   parseBinaryRelationalExpression() {
-    let left = this._parsePrimaryExpression();
-    
-    while (this._isRelationalOperator(this._lookahead?.type)) {
-      
+    let left = this._parsePrimaryExpression();    
+    while (this._isRelationalOperator(this._lookahead?.type)) {      
       const operator = this._eat(this._lookahead.type);
-      
       const right = this._parsePrimaryExpression();
   
       left = {
@@ -290,7 +329,23 @@ export class Parser {
         right,
       };
     }
+    return left;
+  }
 
+  parseAssignmentExpression() {
+    let left = this._parsePrimaryExpression();
+    while (this._isAssignmentOperator(this._lookahead?.type)) {
+      const operator = this._eat(this._lookahead.type);
+      const right = this._parsePrimaryExpression();
+      this._eat(TokenTypes.SEMI_COLON_TYPE); // Consume the semicolon after assignment
+  
+      left = {
+        type: NodeType.AssignmentExpression,
+        operator: operator.value,
+        left,
+        right,
+      };
+    }
     return left;
 
 
@@ -328,7 +383,7 @@ export class Parser {
     const token = this._eat(TokenTypes.STRING_TYPE);
     return {
       type: NodeType.StringLiteral,
-      name: token.value.slice(1, -1), // remove surrounding quotes
+      value: token.value.slice(1, -1), // remove surrounding quotes
     };
   }
   
@@ -346,6 +401,9 @@ export class Parser {
 
   _isRelationalOperator(type) {
     return [TokenTypes.RELATIONAL_OPERATOR,TokenTypes.EQUALITY_OPERATOR].includes(type);
+  }
+  _isAssignmentOperator(type) {
+    return [TokenTypes.SIMPLE_ASSIGN_TYPE,TokenTypes.COMPLEX_ASSIGN_TYPE].includes(type);
   }
 
 
