@@ -1,5 +1,8 @@
 export const NodeType = {
   BinaryExpression: "BinaryExpression",
+  BlockStatement: "BlockStatement",
+  RelationalExpression: "RelationalExpression",
+  EqualityExpression: "EqualityExpression",
   VariableDeclaration: "VariableDeclaration",
   NumericLiteral: "NumericLiteral",
   AssignmentExpression: "AssignmentExpression",
@@ -9,6 +12,11 @@ export const NodeType = {
   VariableStatement: "VariableStatement",
   StringLiteral: "StringLiteral",
   PrintStatement: "PrintStatement",
+  IfStatement: "IfStatement",
+  WhileStatement: "WhileStatement",
+  BreakStatement: "BreakStatement",
+  ContinueStatement: "ContinueStatement",
+  BooleanLiteral: "BooleanLiteral",
   Program: "Program",
 };
   

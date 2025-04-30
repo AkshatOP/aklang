@@ -6,10 +6,14 @@ export const TokenTypes = {
     YAAD_RAKH: "yaad rakh",
     BOL: "bol",
     AGAR: "agar",
+    YA_TOH: "ya toh",
     WARNA: "warna",
     JAB_TAK: "jab tak",
-    AB_BAS: "ab bas ",
-    AGLA_DEKH: "agla dekh ",
+    AB_BAS: "ab bas",
+    AGLA_DEKH: "agla dekh",
+
+    SACH: "sach",
+    JHOOTH: "jhooth",
   
     SEMI_COLON_TYPE: ";",
     OPEN_CURLY_BRACE_TYPE: "{",
@@ -35,6 +39,8 @@ export const TokenTypes = {
     RELATIONAL_OPERATOR: "RELATIONAL_OPERATOR",
 
     EQUALITY_OPERATOR: "EQUALITY_OPERATOR",
+
+    BOOLEAN_TYPE: "BOOLEAN",
 
 
 

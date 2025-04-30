@@ -30,6 +30,7 @@ export const SPEC = [
   { regex: /^\byaad rakh\b/, tokenType: TokenTypes.YAAD_RAKH },
   { regex: /^\bbol\b/, tokenType: TokenTypes.BOL },
   { regex: /^\bagar\b/, tokenType: TokenTypes.AGAR },
+  { regex: /^\bya toh\b/, tokenType: TokenTypes.YA_TOH },
   { regex: /^\bwarna\b/, tokenType: TokenTypes.WARNA },
   { regex: /^\bjab tak\b/, tokenType: TokenTypes.JAB_TAK },
   { regex: /^\bab bas\b/, tokenType: TokenTypes.AB_BAS },
@@ -41,18 +42,30 @@ export const SPEC = [
   // Identifier (variable names)
   { regex: /^\w+/, tokenType: TokenTypes.IDENTIFIER_TYPE },
 
-  // // Number
-  // { regex: /^[+-]?([\d]*[.])?[\d]+/, tokenType: TokenTypes.NUMBER_TYPE },
+  // Boolean
+  { regex: /^\bsach\b/, tokenType: TokenTypes.BOOLEAN_TYPE },
+  { regex: /^\bjhooth\b/, tokenType: TokenTypes.BOOLEAN_TYPE },
+
+
+  // Equality operator: ==, !=
+  {regex: /^[=!]=/, tokenType: TokenTypes.EQUALITY_OPERATOR},
   
   // Assignment operators (=, +=, -=, *=, /=, %=)
   { regex: /^[\*\%\/\+\-]=/, tokenType: TokenTypes.COMPLEX_ASSIGN_TYPE },
   { regex: /^=/, tokenType: TokenTypes.SIMPLE_ASSIGN_TYPE },
+
+  
 
   // Operators (+, -, *, /, %)
   // Note: We use [+\-] to match both + and - for additive operators
   { regex: /^[+\-]/, tokenType: TokenTypes.ADDITIVE_OPERATOR_TYPE },
   { regex: /^[*\/\%]/, tokenType: TokenTypes.MULTIPLICATIVE_OPERATOR_TYPE },
   { regex: /^[><]=?/, tokenType: TokenTypes.RELATIONAL_OPERATOR },
+
+  
+  // Logical operators (&&, ||)
+  { regex: /^&&/, tokenType: TokenTypes.LOGICAL_AND },
+  { regex: /^\|\|/, tokenType: TokenTypes.LOGICAL_OR },
 
   // String literals ("" or '')
   { regex: /^"[^"]*"/, tokenType: TokenTypes.STRING_TYPE },

@@ -1,4 +1,3 @@
 scene shuru
-    c = 3 + 4;
-    c += 3;
+    agar (3 == 5) {}
 scene khatam

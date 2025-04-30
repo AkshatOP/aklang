@@ -18,8 +18,6 @@ export class Parser {
     const body = [];
 
     while (this._lookahead && this._lookahead.type !== "scene khatam") {
-        // console.log("Test 2 passed")
-        // console.log(this)
       body.push(this.parseStatement());
     }
 
@@ -40,6 +38,9 @@ export class Parser {
       case TokenTypes.YAAD_RAKH:
         return this.parseVariableDeclaration();
 
+      case TokenTypes.AGAR:
+        return this.parseIfStatement();
+
       default:
         return this.expressionStatement();
         //throw new SyntaxError(`Unexpected token: ${this._lookahead.type}`);
@@ -54,8 +55,6 @@ export class Parser {
   parsePrintStatement() {
     this._eat(TokenTypes.BOL);
 
-    console.log(this._lookahead);
-    // const valueToken = this._eat(TokenTypes.STRING_TYPE);
     const expressions = this.parseExpressionList();
 
     this._eat(TokenTypes.SEMI_COLON_TYPE);
@@ -149,6 +148,65 @@ export class Parser {
   }
 
 
+  //If Statement
+
+  parseIfStatement() {
+    const HANDLED_LOOP_TOKEN_TYPES = [TokenTypes.WARNA, TokenTypes.YA_TOH];
+
+    this._eat(TokenTypes.AGAR);
+    this._eat(TokenTypes.OPEN_PARENTHESIS_TYPE);
+    
+    const check = this.parseBinaryRelationalExpression();
+    this._eat(TokenTypes.CLOSED_PARENTHESIS_TYPE);
+    
+    if (this._lookahead == null) {
+      throw new SyntaxError(`Unexpected end of AGAR statement`);
+    }
+    const consequent = this.parseBlockStatement();
+
+    let alternate = []; // Initialize alternate as an empty array
+
+    // Handle `ya toh` (else if) clauses
+    while (this._lookahead?.type === TokenTypes.YA_TOH) {
+      this._eat(TokenTypes.YA_TOH); // Consume `ya toh`
+      this._eat(TokenTypes.OPEN_PARENTHESIS_TYPE); // Consume `(`
+      
+      const elseIfTest = this.parseBinaryRelationalExpression(); // Parse the condition
+      this._eat(TokenTypes.CLOSED_PARENTHESIS_TYPE); // Consume `)`
+      const elseIfConsequent = this.parseBlockStatement(); // Parse the block for the `else if` body
+
+      // Nest the `ya toh` clause as an alternate
+      alternate.push({
+          type: NodeType.IfStatement,
+          test: elseIfTest,
+          consequent: elseIfConsequent,
+      });
+    }
+
+
+    // Handle `warna` (else) clause
+    if (this._lookahead?.type === TokenTypes.WARNA) {
+      this._eat(TokenTypes.WARNA); // Consume `warna`
+      const elseBlock = this.parseBlockStatement(); // Parse the block for the `else` body
+      
+      alternate.push({
+          type: NodeType.BlockStatement,
+          body: elseBlock.body,
+      });
+  }
+
+    return {
+      type: NodeType.IfStatement,
+      test: check,
+      consequent: consequent,
+      alternates: alternate,
+    }
+    
+  }
+
+  
+
+
   //Parse Expression
 
   parseExpressionList() {
@@ -191,6 +249,47 @@ export class Parser {
         right,
       };
     }
+    return left;
+  }
+
+
+  // Block Statement
+
+  parseBlockStatement() {
+    
+    this._eat(TokenTypes.OPEN_CURLY_BRACE_TYPE);
+    const body = [];
+
+    while (this._lookahead && this._lookahead.type !== TokenTypes.CLOSED_CURLY_BRACE_TYPE) {
+      body.push(this.parseStatement());
+    }
+
+    this._eat(TokenTypes.CLOSED_CURLY_BRACE_TYPE);
+
+    return {
+      type: NodeType.BlockStatement,
+      body,
+    };
+  }
+
+  // Parse Binary Relational Expression
+
+  parseBinaryRelationalExpression() {
+    let left = this._parsePrimaryExpression();
+    
+    while (this._isRelationalOperator(this._lookahead?.type)) {
+      
+      const operator = this._eat(this._lookahead.type);
+      
+      const right = this._parsePrimaryExpression();
+  
+      left = {
+        type: NodeType.BinaryExpression,
+        operator: operator.value,
+        left,
+        right,
+      };
+    }
 
     return left;
 
@@ -213,7 +312,6 @@ export class Parser {
     }
 
     throw new SyntaxError(`Unexpected token in primary expression: ${token.type}`)
-
 
   }
 
@@ -244,6 +342,10 @@ export class Parser {
   
   _isBinaryOperator(type) {
     return [TokenTypes.ADDITIVE_OPERATOR_TYPE,TokenTypes.MULTIPLICATIVE_OPERATOR_TYPE].includes(type);
+  }
+
+  _isRelationalOperator(type) {
+    return [TokenTypes.RELATIONAL_OPERATOR,TokenTypes.EQUALITY_OPERATOR].includes(type);
   }
 
 
