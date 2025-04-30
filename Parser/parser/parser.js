@@ -245,7 +245,7 @@ export class Parser {
   //Expression Statement
 
   expressionStatement() {
-    
+
     let init = this.parseAssignmentExpression();
     return {
       type: NodeType.ExpressionStatement,
@@ -366,6 +366,10 @@ export class Parser {
       return this.parseLiteral();
     }
 
+    if(token.type ===  TokenTypes.BOOLEAN_TYPE) {
+      return this.parseBoolean();
+    }
+
     throw new SyntaxError(`Unexpected token in primary expression: ${token.type}`)
 
   }
@@ -393,6 +397,14 @@ export class Parser {
       type: NodeType.NumericLiteral,
       value: Number(token.value),
     };
+  }
+
+  parseBoolean() {
+    const token = this._eat(TokenTypes.BOOLEAN_TYPE);
+    return {
+      type: NodeType.BooleanLiteral,
+      value: token.value,
+    }
   }
   
   _isBinaryOperator(type) {

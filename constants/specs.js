@@ -39,13 +39,13 @@ export const SPEC = [
   // Number
   { regex: /^[+-]?([\d]*[.])?[\d]+/, tokenType: TokenTypes.NUMBER_TYPE },
 
-  // Identifier (variable names)
-  { regex: /^\w+/, tokenType: TokenTypes.IDENTIFIER_TYPE },
-
+  
   // Boolean
   { regex: /^\bsach\b/, tokenType: TokenTypes.BOOLEAN_TYPE },
   { regex: /^\bjhooth\b/, tokenType: TokenTypes.BOOLEAN_TYPE },
-
+  
+  // Identifier (variable names)
+  { regex: /^\w+/, tokenType: TokenTypes.IDENTIFIER_TYPE },
 
   // Equality operator: ==, !=
   {regex: /^[=!]=/, tokenType: TokenTypes.EQUALITY_OPERATOR},
