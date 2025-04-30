@@ -1,5 +1,6 @@
 import { NodeType } from "../../constants/NodeTypes.js";
 import { TokenTypes } from "../tokenizer/TokenTypes.js";
+// import Expression from "./expression";
 
 export class Parser {
   constructor(tokenizer) {
@@ -17,7 +18,7 @@ export class Parser {
     const body = [];
 
     while (this._lookahead && this._lookahead.type !== "scene khatam") {
-        console.log("Test 2 passed")
+        // console.log("Test 2 passed")
         // console.log(this)
       body.push(this.parseStatement());
     }
@@ -62,17 +63,156 @@ export class Parser {
     };
   }
 
-  // parseVariableDeclaration() {
+  parseVariableDeclaration() {
 
-  //   this._eat(TokenTypes.YAAD_RAKH);
+    this._eat(TokenTypes.YAAD_RAKH);
+    const declarations = this._getVariableDeclarationList();
+    // console.log(declarations)
+    this._eat(TokenTypes.SEMI_COLON_TYPE);
 
-  //   const variableNameToken = this._eat(TokenTypes.IDENTIFIER_TYPE);
+    return {
+      type: NodeType.VariableStatement,
+      declarations
+    }
 
-  //   this._eat(TokenTypes.ASSIGN_TYPE);
+  }
+
+  _getVariableDeclarationList() {
+    const variableDecalrations = [];
+
+    do {
+      variableDecalrations.push(this._getVariableDeclaration());
+    } while (
+      this._lookahead?.type === TokenTypes.COMMA_TYPE &&
+      this._eat(TokenTypes.COMMA_TYPE)
+    );
+
+    return variableDecalrations
+  }
+
+
+  _getVariableDeclaration() {
+    // console.log(this)
+    const id = this._eat(TokenTypes.IDENTIFIER_TYPE);
+    // console.log(this._lookahead)
+
+    
+    let init;
+    if (this._lookahead?.type === TokenTypes.SIMPLE_ASSIGN_TYPE) {
+        this._eat(TokenTypes.SIMPLE_ASSIGN_TYPE);
+        init = this.parseExpression(); // Parse the initializer expression
+    } else {
+      init = this._getNullLiteral();
+    }
+
+
+    return {
+        type: NodeType.VariableDeclaration,
+        id: {
+            type: NodeType.IdentifierExpression,
+            name: id.value,
+        },
+        init,
+    };
+  }
+
+  _getNullLiteral() {
+    return {
+      type: NodeType.NullLiteral,
+      value: null,
+    };
+  }
+
+  parseExpression() {
+    return this.parseAssignmentExpression();
+  }
+
+
+  parseAssignmentExpression() {
+    
+    const left = this._parsePrimaryExpression();
+
+
+    // console.log("LOOKAHEAD " , this._lookahead)
+    
+
+    // if(this._lookahead?.type === TokenTypes.SIMPLE_ASSIGN_TYPE) {
+      
+    //   this._eat(TokenTypes.SIMPLE_ASSIGN_TYPE);
+    //   // const right = this.parseBinaryExpression(); // Parse the right-hand side expression
 
 
 
-  // }
+    //   return {
+    //     type: NodeType.AssignmentExpression,
+    //     operator: '=',
+    //     left,
+    //     right,
+    //   };
+    // }
+
+    return left;
+    
+  }
+
+
+  parseBinaryExpression() {
+    let left = this._parsePrimaryExpression();
+
+    while (this._isBinaryOperator(this._lookahead()?.type)) {
+      const operator = this._eat(this._lookahead().type);
+      const right = this.parsePrimaryExpression();
+  
+      left = {
+        type: NodeType.BinaryExpression,
+        operator: operator.value,
+        left,
+        right,
+      };
+    }
+
+
+  }
+
+  _parsePrimaryExpression() {
+    const token = this._lookahead;
+    // console.log("TOKEN " , token)
+
+    if(token.type === TokenTypes.IDENTIFIER_TYPE){
+      return this.parseIdentifier();
+    }
+
+    if(token.type === TokenTypes.NUMBER_TYPE){
+      return this.parseLiteral();
+    }
+
+    throw new SyntaxError(`Unexpected token in primary expression: ${token.type}`)
+
+
+  }
+
+
+  parseIdentifier() {
+    const token = this._eat(TokenTypes.IDENTIFIER_TYPE);
+    return {
+      type: NodeType.IdentifierExpression,
+      name: token.value,
+    };
+  }
+  
+  parseLiteral() {
+    const token = this._eat(TokenTypes.NUMBER_TYPE);
+    return {
+      type: NodeType.NumericLiteral,
+      value: Number(token.value),
+    };
+  }
+  
+  _isBinaryOperator(type) {
+    return [TokenTypes.PLUS, TokenTypes.MINUS, TokenTypes.STAR, TokenTypes.SLASH].includes(type);
+  }
+
+
 
 
 

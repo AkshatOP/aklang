@@ -35,13 +35,24 @@ export const SPEC = [
   { regex: /^\bab bas\b/, tokenType: TokenTypes.AB_BAS },
   { regex: /^\bagla dekh\b/, tokenType: TokenTypes.AGLA_DEKH },
 
+  // Number
+  { regex: /^[+-]?([\d]*[.])?[\d]+/, tokenType: TokenTypes.NUMBER_TYPE },
 
   // Identifier (variable names)
   { regex: /^\w+/, tokenType: TokenTypes.IDENTIFIER_TYPE },
+
+  // // Number
+  // { regex: /^[+-]?([\d]*[.])?[\d]+/, tokenType: TokenTypes.NUMBER_TYPE },
   
   // Assignment operators (=, +=, -=, *=, /=, %=)
   { regex: /^[\*\%\/\+\-]=/, tokenType: TokenTypes.COMPLEX_ASSIGN_TYPE },
   { regex: /^=/, tokenType: TokenTypes.SIMPLE_ASSIGN_TYPE },
+
+  // Operators (+, -, *, /, %)
+  // Note: We use [+\-] to match both + and - for additive operators
+  { regex: /^[+\-]/, tokenType: TokenTypes.ADDITIVE_OPERATOR_TYPE },
+  { regex: /^[*\/\%]/, tokenType: TokenTypes.MULTIPLICATIVE_OPERATOR_TYPE },
+  { regex: /^[><]=?/, tokenType: TokenTypes.RELATIONAL_OPERATOR },
 
   // String literals ("" or '')
   { regex: /^"[^"]*"/, tokenType: TokenTypes.STRING_TYPE },
