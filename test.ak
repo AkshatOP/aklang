@@ -1,4 +1,5 @@
 scene shuru
     bol "Hello, World!";
-    yaad rakh a = 3;
+    bol a,b;
+    bol 3;
 scene khatam

@@ -41,6 +41,7 @@ export class Parser {
         return this.parseVariableDeclaration();
 
       default:
+        // return this.expressionStatement();
         throw new SyntaxError(`Unexpected token: ${this._lookahead.type}`);
       
     }
@@ -48,26 +49,25 @@ export class Parser {
   }
 
   parsePrintStatement() {
-    this._eat("BOL");
+    this._eat(TokenTypes.BOL);
 
-    const valueToken = this._eat(TokenTypes.STRING_TYPE);
+    console.log(this._lookahead);
+    // const valueToken = this._eat(TokenTypes.STRING_TYPE);
+    const expressions = this.parseExpressionList();
 
     this._eat(TokenTypes.SEMI_COLON_TYPE);
 
     return {
       type: NodeType.PrintStatement,
-      argument: {
-        type: NodeType.StringLiteral,
-        value: valueToken.value.slice(1, -1), // remove surrounding quotes
-      },
+      expressions: expressions,
     };
+
   }
 
   parseVariableDeclaration() {
 
     this._eat(TokenTypes.YAAD_RAKH);
     const declarations = this._getVariableDeclarationList();
-    // console.log(declarations)
     this._eat(TokenTypes.SEMI_COLON_TYPE);
 
     return {
@@ -92,9 +92,7 @@ export class Parser {
 
 
   _getVariableDeclaration() {
-    // console.log(this)
     const id = this._eat(TokenTypes.IDENTIFIER_TYPE);
-    // console.log(this._lookahead)
 
     
     let init;
@@ -123,6 +121,19 @@ export class Parser {
     };
   }
 
+  parseExpressionList() {
+    const ExpressionList = [];
+
+    do {
+      ExpressionList.push(this.parseExpression());
+    } while (
+      this._lookahead?.type === TokenTypes.COMMA_TYPE &&
+      this._eat(TokenTypes.COMMA_TYPE)
+    );
+
+    return ExpressionList
+  }
+
   parseExpression() {
     return this.parseAssignmentExpression();
   }
@@ -130,26 +141,9 @@ export class Parser {
 
   parseAssignmentExpression() {
     
-    const left = this._parsePrimaryExpression();
+    const left = this.parseBinaryExpression();
 
 
-    // console.log("LOOKAHEAD " , this._lookahead)
-    
-
-    // if(this._lookahead?.type === TokenTypes.SIMPLE_ASSIGN_TYPE) {
-      
-    //   this._eat(TokenTypes.SIMPLE_ASSIGN_TYPE);
-    //   // const right = this.parseBinaryExpression(); // Parse the right-hand side expression
-
-
-
-    //   return {
-    //     type: NodeType.AssignmentExpression,
-    //     operator: '=',
-    //     left,
-    //     right,
-    //   };
-    // }
 
     return left;
     
@@ -158,10 +152,12 @@ export class Parser {
 
   parseBinaryExpression() {
     let left = this._parsePrimaryExpression();
-
-    while (this._isBinaryOperator(this._lookahead()?.type)) {
-      const operator = this._eat(this._lookahead().type);
-      const right = this.parsePrimaryExpression();
+   
+    while (this._isBinaryOperator(this._lookahead?.type)) {
+      
+      const operator = this._eat(this._lookahead.type);
+      
+      const right = this._parsePrimaryExpression();
   
       left = {
         type: NodeType.BinaryExpression,
@@ -171,12 +167,17 @@ export class Parser {
       };
     }
 
+    return left;
+
 
   }
 
   _parsePrimaryExpression() {
     const token = this._lookahead;
-    // console.log("TOKEN " , token)
+
+    if(token.type === TokenTypes.STRING_TYPE) {
+      return this.parseString();
+    }
 
     if(token.type === TokenTypes.IDENTIFIER_TYPE){
       return this.parseIdentifier();
@@ -199,6 +200,14 @@ export class Parser {
       name: token.value,
     };
   }
+
+  parseString() {
+    const token = this._eat(TokenTypes.STRING_TYPE);
+    return {
+      type: NodeType.StringLiteral,
+      name: token.value.slice(1, -1), // remove surrounding quotes
+    };
+  }
   
   parseLiteral() {
     const token = this._eat(TokenTypes.NUMBER_TYPE);
@@ -209,7 +218,7 @@ export class Parser {
   }
   
   _isBinaryOperator(type) {
-    return [TokenTypes.PLUS, TokenTypes.MINUS, TokenTypes.STAR, TokenTypes.SLASH].includes(type);
+    return [TokenTypes.ADDITIVE_OPERATOR_TYPE,TokenTypes.MULTIPLICATIVE_OPERATOR_TYPE].includes(type);
   }
 
 

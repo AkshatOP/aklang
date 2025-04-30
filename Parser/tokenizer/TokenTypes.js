@@ -36,10 +36,7 @@ export const TokenTypes = {
 
     EQUALITY_OPERATOR: "EQUALITY_OPERATOR",
 
-    "PLUS": "+",
-    "MINUS": "-",
-    "STAR": "*",
-    "SLASH": "/",
+
 
   };
   
