@@ -1,6 +1,5 @@
 import { NodeType } from "../../constants/NodeTypes.js";
 import { TokenTypes } from "../tokenizer/TokenTypes.js";
-// import Expression from "./expression";
 
 export class Parser {
   constructor(tokenizer) {
@@ -247,6 +246,7 @@ export class Parser {
   expressionStatement() {
 
     let init = this.parseAssignmentExpression();
+    this._eat(TokenTypes.SEMI_COLON_TYPE); // Consume the semicolon
     return {
       type: NodeType.ExpressionStatement,
       expression: init,
@@ -336,8 +336,7 @@ export class Parser {
     let left = this._parsePrimaryExpression();
     while (this._isAssignmentOperator(this._lookahead?.type)) {
       const operator = this._eat(this._lookahead.type);
-      const right = this._parsePrimaryExpression();
-      this._eat(TokenTypes.SEMI_COLON_TYPE); // Consume the semicolon after assignment
+      const right = this.parseBinaryExpression();
   
       left = {
         type: NodeType.AssignmentExpression,
