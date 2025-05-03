@@ -14,6 +14,8 @@ export const NodeType = {
   VariableStatement: "VariableStatement",
   StringLiteral: "StringLiteral",
   PrintStatement: "PrintStatement",
+  SameLinePrintStatement: "SameLinePrintStatement",
+  InputStatement: "InputStatement",
   IfStatement: "IfStatement",
   WhileStatement: "WhileStatement",
   BreakStatement: "BreakStatement",

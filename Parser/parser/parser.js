@@ -34,6 +34,9 @@ export class Parser {
       case TokenTypes.BOL:
         return this.parsePrintStatement();
 
+      case TokenTypes.BOLTA_JA:
+        return this.parseSameLinePrintStatement();
+
       case TokenTypes.YAAD_RAKH:
         return this.parseVariableDeclaration();
 
@@ -45,7 +48,7 @@ export class Parser {
 
       case TokenTypes.AB_BAS:
         return this.parseBreakStatement();
-      
+
       case TokenTypes.AGLA_DEKH:
         return this.parseContinueStatement();
 
@@ -71,6 +74,22 @@ export class Parser {
 
     return {
       type: NodeType.PrintStatement,
+      expressions: expressions,
+    };
+
+  }
+
+  //Same line print statement
+
+  parseSameLinePrintStatement() {
+    this._eat(TokenTypes.BOLTA_JA);
+
+    const expressions = this.parseExpressionList();
+
+    this._eat(TokenTypes.SEMI_COLON_TYPE);
+
+    return {
+      type: NodeType.SameLinePrintStatement,
       expressions: expressions,
     };
 

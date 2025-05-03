@@ -11,9 +11,27 @@ export const TokenTypes = {
     JAB_TAK: "jab tak",
     AB_BAS: "ab bas",
     AGLA_DEKH: "agla dekh",
+    BOLTA_JA: "bolta ja",
 
     SACH: "sach",
     JHOOTH: "jhooth",
+
+    // SCENE_SHURU: "class chalu",
+    // SCENE_KHATAM: "class khatam",
+    // YAAD_RAKH: "note kar",
+    // BOL: "bol be",
+    // BOLTA_JA: "bol rha hu",
+
+    // AGAR: "agar",
+    // YA_TOH: "ya toh",
+    // WARNA: "warna",
+    // JAB_TAK: "jab tak",
+
+    // AB_BAS: "bunk maar",
+    // AGLA_DEKH: "agla class",
+
+    // SACH: "pass",
+    // JHOOTH: "fail",
   
     SEMI_COLON_TYPE: ";",
     OPEN_CURLY_BRACE_TYPE: "{",

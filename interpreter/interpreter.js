@@ -2,7 +2,7 @@ import Scope from "./scope.js";
 import { NodeType } from "../constants/NodeTypes.js";
 import  InvalidStateException  from "./exceptions/invalidStateException.js";
 import RuntimeException from "./exceptions/runtimeException.js";
-import NallaPointerException from "./exceptions/nallaPointerException.js";
+import NullPointerException from "./exceptions/nullPointerException.js";
 
 
 export class Interpreter {
@@ -27,6 +27,9 @@ export class Interpreter {
 
             case NodeType.PrintStatement:
                 return this.visitPrintStatement(node);
+
+            case NodeType.SameLinePrintStatement:
+                return this.visitSameLinePrintStatement(node);
 
             case NodeType.NumericLiteral:
                 return this.visitNumericLiteral(node);
@@ -56,7 +59,7 @@ export class Interpreter {
                 return this.visitBinaryExpression(node);
 
             case NodeType.BlockStatement:
-                return this.Q(node);
+                return this.visitBlockStatement(node);
 
             case NodeType.IfStatement:
                 return this.visitIfStatement(node);
@@ -77,7 +80,7 @@ export class Interpreter {
                 return this.visitContinueStatement(node);
 
             default:
-                throw new Error(`No visit method defined for node type: ${node.type}`);
+                throw new Error(`No visit method defined by AK for node type: ${node.type}`);
 
 
         }
@@ -89,15 +92,32 @@ export class Interpreter {
         for (const statement of node.body) {
             this.visit(statement); // Visit each statement in the program
         }
+        process.stdout.write('\n'); // Flush remaining buffered output
     }
 
     visitPrintStatement(node) {
         if (!node.expressions)
             throw new InvalidStateException(
-              `No expressions to print: ${node.expressions}`
+              `print karne kuch de toh: ${node.expressions}`
         );
         let values = node.expressions.map(expression => this.visit(expression));
         console.log(...values); // Print the evaluated expressions
+    }
+
+    visitSameLinePrintStatement(node) {
+        if(!node.expressions) {
+            throw new InvalidStateException(
+                `print karne kuch de toh: ${node.expressions}`
+            );
+        }
+        // console.log(node.expressions)
+        let values = node.expressions.map(expression => {
+            const result = this.visit(expression);
+
+            return result // Convert the result to a string
+        });
+
+        process.stdout.write(values.join(" ") + " "); // Print the evaluated expressions in a line;
     }
 
     visitVariableStatement(node) {
@@ -115,7 +135,7 @@ export class Interpreter {
     visitVariableDeclaration(node) {
         if(!node.id || !node.init) {
             throw new InvalidStateException(
-                `Invalid variable declaration: ${node.id} = ${node.init}`
+                `galat variable declaration: ${node.id} = ${node.init}`
             );
         }
 
@@ -150,7 +170,7 @@ export class Interpreter {
     visitIdentifierExpression(node) {
         if(!node.name) {
             throw new InvalidStateException(
-                `Invalid identifier expression: ${node.name}`
+                `galat identifier expression: ${node.name}`
             );
         }
 
@@ -167,7 +187,7 @@ export class Interpreter {
     visitAssignmentExpression(node) {
         if(!node.left) {
             throw new InvalidStateException(
-                `Invalid assignment expression: ${node.type}`
+                `left node not present: ${node.type}`
             );
         }
 
@@ -186,14 +206,14 @@ export class Interpreter {
 
 
             if( left === null && operator !== "=") {
-                throw new SyntaxError(
-                    `Null can't work like this: ${node.left} ${node.operator} ${node.right}`
+                throw new NullPointerException(
+                    `Null ese kaam nahi karta: ${node.left} ${node.operator} ${node.right}`
                 );
             }
 
             if(left == true && right == false && operator !== "=") {
-                throw new SyntaxError( 
-                    `True and false can't work like this: ${node.left} ${node.operator} ${node.right}`
+                throw new RuntimeException( 
+                    `sach aur jhooth ese kaam nahi karta: ${node.left} ${node.operator} ${node.right}`
                 );
             }
 
@@ -209,7 +229,7 @@ export class Interpreter {
     }
 
 
-    //NEED TO IMPLEMENTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
+
 
 
     visitBinaryExpression(node) {
@@ -233,7 +253,7 @@ export class Interpreter {
             right = this._getNodeValue(node.right); // Visit the right operand
 
         } else if(node.type == NodeType.LogicalExpression) {
-            this._checkNalla(node);
+            this._checkNull(node);
 
             left = node.left.type == NodeType.BooleanLiteral ? (node.left.value == "sach" ? true : false) : this.visit(node.left);
 
@@ -252,24 +272,24 @@ export class Interpreter {
             );// Check if left, right, or operator is not found
         }
 
-        const nallaException = new NallaPointerException(
-            `Nalla operand ni jamta "${node.operator}" ke sath`
+        const nullException = new NullPointerException(
+            `Null operand ni chalta "${node.operator}" ke sath`
         ); // Create a new NallaPointerException
 
         if (
             node.left.type === NodeType.NullLiteral ||
             node.right.type === NodeType.NullLiteral
         )
-            throw nallaException; // Check if left or right operand is null
+            throw nullException; // Check if left or right operand is null
 
         if (node.left.type === NodeType.IdentifierExpression && node.left.name) {
             const value = Interpreter.getCurrentScope().get(node.left.name);
-            if (value === null) throw nallaException;
+            if (value === null) throw nullException;
         }
 
         if (node.right.type === NodeType.IdentifierExpression && node.right.name) {
             const value = Interpreter.getCurrentScope().get(node.right.name);
-            if (value === null) throw nallaException;
+            if (value === null) throw nullException;
         }
     }
     
@@ -282,7 +302,7 @@ export class Interpreter {
         }
     
         const runtimeException = new RuntimeException(
-          `Kya kar rha hai tu??..Boolean operand ni jamta "${node.operator}" ke sath`
+          `Boolean operand ni chalta "${node.operator}" ke sath`
         );
     
         if (
@@ -317,7 +337,7 @@ export class Interpreter {
         return this.visit(node); // Visit the node to get its value
     }
 
-    Q(node) {
+    visitBlockStatement(node) {
         const parentScope = Interpreter.getCurrentScope(); // Get the parent scope
         Interpreter.setCurrentScope(parentScope); // Set the new scope as the current scope
 
@@ -419,7 +439,7 @@ export class Interpreter {
         }
 
         if (executions > 5000) {
-          throw new RuntimeException("Bohot jyada hi chale jaa rha hai loop");
+          throw new RuntimeException("Tham ja re , loop infinite ho gaya hai");
         }
 
 
@@ -439,14 +459,14 @@ export class Interpreter {
 
     }
 
-    //END OF NEED TO IMPLEMENTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
+    
 
 
     visitBreakStatement(node) {
         if (Interpreter.getCurrentScope().isLoop()) {
             Interpreter.getCurrentScope().setBreakStatement(true);
         } else {
-            throw new SyntaxError(`Kya "ab bas"?? Loop kahan hai?`);
+            throw new SyntaxError(`Loop kahan hai? "ab bas" nahi chalega`);
         }
     }
 
@@ -454,14 +474,14 @@ export class Interpreter {
         if (Interpreter.getCurrentScope().isLoop()) {
             Interpreter.getCurrentScope().setContinueStatement(true);
         } else {
-            throw new SyntaxError(`Kya "agla dekh"?? Loop kahan hai?`);
+            throw new SyntaxError(`Loop kahan hai? "agla dekh" nahi chalega`);
         }
     }
 
     getOperatorFunction(operands , operator){
 
         const exception = new SyntaxError(
-            `Ye kya kar raha hai: "${operator}" ke sath "${typeof operands.left}" aur "${typeof operands.right}" nahi jamte.`
+            `Kya krra: "${operator}" ke sath "${typeof operands.left}" aur "${typeof operands.right}" nahi chalte.`
         );
 
         switch(operator) {
@@ -503,7 +523,7 @@ export class Interpreter {
             case "/=":
             case "/":
                 if (operands.right === 0) {
-                throw new RuntimeException(`Kya kar rha hai tu??...zero se divide ni karte`);
+                throw new RuntimeException(`zero se divide ni karte re`);
                 }
                 
                 if (this.checkNumberOperands(operands)) {
@@ -516,6 +536,13 @@ export class Interpreter {
             case "%":
                 if (this.checkNumberOperands(operands)) {
                 return operands.left % operands.right;
+                }
+        
+                throw exception;
+
+            case "**":
+                if (this.checkNumberOperands(operands)) {
+                return operands.left ** operands.right;
                 }
         
                 throw exception;

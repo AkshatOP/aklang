@@ -29,6 +29,7 @@ export const SPEC = [
   { regex: /^\bscene khatam\b/, tokenType: TokenTypes.SCENE_KHATAM },
   { regex: /^\byaad rakh\b/, tokenType: TokenTypes.YAAD_RAKH },
   { regex: /^\bbol\b/, tokenType: TokenTypes.BOL },
+  { regex: /^\bbolta ja\b/, tokenType: TokenTypes.BOLTA_JA },
   { regex: /^\bagar\b/, tokenType: TokenTypes.AGAR },
   { regex: /^\bya toh\b/, tokenType: TokenTypes.YA_TOH },
   { regex: /^\bwarna\b/, tokenType: TokenTypes.WARNA },
@@ -59,7 +60,7 @@ export const SPEC = [
   // Operators (+, -, *, /, %)
   // Note: We use [+\-] to match both + and - for additive operators
   { regex: /^[+\-]/, tokenType: TokenTypes.ADDITIVE_OPERATOR_TYPE },
-  { regex: /^[*\/\%]/, tokenType: TokenTypes.MULTIPLICATIVE_OPERATOR_TYPE },
+  { regex: /^\*\*|^[*\/\%]/, tokenType: TokenTypes.MULTIPLICATIVE_OPERATOR_TYPE },
   { regex: /^[><]=?/, tokenType: TokenTypes.RELATIONAL_OPERATOR },
 
   

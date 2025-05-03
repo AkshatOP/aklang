@@ -1,14 +1,21 @@
 {
   "name": "testing",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node main.js test.ak"
+    "start": "node main.js index.ak"
   },
   "type": "module",
   "keywords": [],
   "author": "",
+  "bin": {
+    "aklang": "./main.js"
+  },
   "license": "ISC",
-  "description": ""
+  "description": "",
+  "dependencies": {
+    "chalk": "^5.4.1",
+    "yargs": "^17.7.2"
+  }
 }
