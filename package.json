@@ -1,6 +1,6 @@
 {
   "name": "aklang",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A Toy Programming Language by AK",
   "main": "main.js",
   "scripts": {
