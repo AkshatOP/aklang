@@ -17,6 +17,8 @@ class chalu
       bol "b is equal to a";
     } nahi mili toh (b == 0) {
       bol "b is equal to zero";
+    } pakde gaye {
+      bol "b is neither a nor 0";
     }
 
     b += 1;
