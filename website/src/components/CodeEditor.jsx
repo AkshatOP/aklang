@@ -3,6 +3,7 @@ import Editor from 'react-simple-code-editor'
 import { highlight, languages } from 'prismjs'
 import 'prismjs/components/prism-javascript'
 import 'prismjs/themes/prism-tomorrow.css'
+import '../utils/prism-aklang.js';
 
 const CodeEditor = ({ code, setCode }) => {
   return (
@@ -10,7 +11,7 @@ const CodeEditor = ({ code, setCode }) => {
       <Editor
         value={code}
         onValueChange={code => setCode(code)}
-        highlight={code => highlight(code, languages.javascript, 'javascript')}
+        highlight={code => highlight(code, languages.aklang, 'aklang')}
         padding={16}
         style={{
           fontFamily: '"Fira code", "Fira Mono", monospace',
