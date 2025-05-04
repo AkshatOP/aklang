@@ -149,7 +149,7 @@ export class Interpreter {
         let value;
 
         if(node.init.type === NodeType.BooleanLiteral) {
-            value = node.init.value == "sach" ? true : false; // Evaluate the initializer
+            value = node.init.value == "pass" ? true : false; // Evaluate the initializer
         } else if (node.init.type === NodeType.NullLiteral) {
             value = null; // Handle null literal
         } else {
@@ -183,8 +183,8 @@ export class Interpreter {
         let value = Interpreter.getCurrentScope().get(node.name); // Get the variable value from the current scope
         
         if(value === null) value = null; // Handle null value
-        else if(value === true) value = "sach"; // Convert boolean to string
-        else if(value === false) value = "jhooth"; // Convert boolean to string
+        else if(value === true) value = "pass"; // Convert boolean to string
+        else if(value === false) value = "fail"; // Convert boolean to string
 
         return value; // Return the variable value
        
@@ -219,7 +219,7 @@ export class Interpreter {
 
             if(left == true && right == false && operator !== "=") {
                 throw new RuntimeException( 
-                    `sach aur jhooth ese kaam nahi karta: ${node.left} ${node.operator} ${node.right}`
+                    `pass aur fail ese kaam nahi karta: ${node.left} ${node.operator} ${node.right}`
                 );
             }
 
@@ -261,9 +261,9 @@ export class Interpreter {
         } else if(node.type == NodeType.LogicalExpression) {
             this._checkNull(node);
 
-            left = node.left.type == NodeType.BooleanLiteral ? (node.left.value == "sach" ? true : false) : this.visit(node.left);
+            left = node.left.type == NodeType.BooleanLiteral ? (node.left.value == "pass" ? true : false) : this.visit(node.left);
 
-            right = node.right.type == NodeType.BooleanLiteral ? (node.right.value == "sach" ? true : false) : this.visit(node.right);
+            right = node.right.type == NodeType.BooleanLiteral ? (node.right.value == "pass" ? true : false) : this.visit(node.right);
 
         }
 
@@ -378,7 +378,7 @@ export class Interpreter {
 
         if(test) {
             const testResult = this.visit(test);
-            if(testResult === true || testResult === "sach" ) {
+            if(testResult === true || testResult === "pass" ) {
                 
             this.evaluateNode(node.consequent , parentScope);
             
@@ -395,7 +395,7 @@ export class Interpreter {
                         // Evaluate the "test" condition of the "ya toh" node
                         // If the condition is true, evaluate the node and break
                         const testResult = this.visit(alternateTest);
-                        if (testResult === true || testResult === "sach" ) {
+                        if (testResult === true || testResult === "pass" ) {
                             this.evaluateNode(alternate.consequent , parentScope);
                             break;
                         }
@@ -438,7 +438,7 @@ export class Interpreter {
       Interpreter.getCurrentScope().setLoop(true);
 
 
-      for (let testResult = getConditionValue(), executions = 0; testResult === true || testResult === "sahi"; testResult = getConditionValue(), executions++) {
+      for (let testResult = getConditionValue(), executions = 0; testResult === true || testResult === "pass"; testResult = getConditionValue(), executions++) {
 
         if (Interpreter.getCurrentScope().isBreakStatement()) {
           break;
