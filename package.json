@@ -18,7 +18,7 @@
     "Programming-Language"
   ],
   "bin": {
-    "aklang": "./main.js"
+    "aklang": "main.js"
   },
   "author": "AK",
   "license": "MIT",

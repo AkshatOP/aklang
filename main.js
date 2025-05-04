@@ -1,8 +1,8 @@
 #! /usr/bin/env node
-import { Interpreter } from "../interpreter/interpreter.js"; // your interpreter
-import { Tokenizer } from "../Parser/tokenizer/tokenizer.js"; // your tokenizer
-import { Parser } from "../Parser/parser/parser.js"; // your parser;
-import { SPEC } from "../constants/specs.js"; // your spec file
+import { Interpreter } from "./interpreter/interpreter.js"; // your interpreter
+import { Tokenizer } from "./Parser/tokenizer/tokenizer.js"; // your tokenizer
+import { Parser } from "./Parser/parser/parser.js"; // your parser;
+import { SPEC } from "./constants/specs.js"; // your spec file
 import chalk from "chalk";
 import fs from "fs";
 import yargs from "yargs";
