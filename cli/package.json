@@ -1,0 +1,33 @@
+{
+  "name": "aklang",
+  "version": "1.0.0",
+  "description": "A Toy Programming Language by AK",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "aklang index.ak"
+  },
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AkshatOP/aklang.git"
+  },
+  "keywords": [
+    "Language",
+    "CLI",
+    "Programming-Language"
+  ],
+  "bin": {
+    "aklang": "./main.js"
+  },
+  "author": "AK",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/AkshatOP/aklang/issues"
+  },
+  "homepage": "https://github.com/AkshatOP/aklang#readme",
+  "dependencies": {
+    "chalk": "^5.4.1",
+    "yargs": "^17.7.2"
+  }
+}
