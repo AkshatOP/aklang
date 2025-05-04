@@ -17,10 +17,22 @@ function App() {
               <h1 className="text-4xl font-bold text-center text-primary-600">
                 <span className="text-bhagwa">AK</span>
                 <span className="text-neela">Lang</span> 
-                <span className="text-hara">Playground</span>
               </h1>
               <ThemeToggle />
             </div>
+            {/* New text below the header */}
+            <div className=" text-l text-white mt-2">
+              AKLang is a toy programming language with desi coding vibes, made with JavaScript. 
+              <br />
+              <span className="bg-[#2d2d2d] text-white px-2 py-1 font-mono text-lg mt-2 inline-block background-opacity-50 rounded-md">
+                `npm i -g aklang`
+              </span>
+              <br />
+              Made by <a href="https://github.com/AkshatOP" target="_blank" className="text-primary-400">@Akshat</a>
+            </div>
+            <br />
+            
+            
             <Navbar activeTab={activeTab} setActiveTab={setActiveTab} />
           </div>
         </header>

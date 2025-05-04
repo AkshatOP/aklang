@@ -5,7 +5,7 @@ export const documentationData = [
     examples: [
       {
         title: "Data Types",
-        description: "Different Data Types.",
+        description: "Variables can be declared using `note kar`.",
         code: `class chalu
   note kar a = 10;
   note kar b = 3.14;
@@ -19,8 +19,8 @@ class khatam`
     ]
   },
   {
-    title: "Data Types",
-    description: "Different Data Types built in AKLang.",
+    title: "General",
+    description: "`class chalu` is the entrypoint for the program and all program must end with `class khatam`. Use `bol` to print anything to console.",
     examples: [
       {
         title: "Basic Variables",
@@ -61,36 +61,36 @@ class khatam`
   },
   {
     title: "Conditional Statements",
-    description: "Use 'proxy mili toh' and 'nahi mili toh' and 'pakde gaye' for conditions.",
+    description: "AKLang supports if-else-if ladder construct , `proxy mili toh` block will execute if condition is `pass`, otherwise one of the subsequently added `nahi mili toh` blocks will execute if their respective condition is `pass`, and the `pakde gaye` block will eventually execute if all of the above conditions are `fail`.",
     examples: [
       {
         title: "If-ElseIf-Else Statement",
         description: "Use basic conditional logic with if-ElseIf-else.",
         code: `class chalu
-        note kar umar = 20;
-        proxy mili toh (umar >= 18) {
-          bol "Aap vote de sakte ho!";
-  } pakde gaye {
-    bol "Abhi tum bacche ho.";
-  }
-  
-  note kar marks = 85;
-  proxy mili toh (marks >= 90) {
-    bol "A+ grade, bohot badhiya!";
-  } nahi mili toh (marks >= 80) {
-    bol "A grade, badhiya!";
-  } nahi mili toh (marks >= 70) {
-    bol "B grade, theek hai.";
-  } pakde gaye {
-    bol "Padhai karo, beta.";
-  }
-  class khatam`
+    note kar umar = 20;
+    proxy mili toh (umar >= 18) {
+      bol "Aap vote de sakte ho!";
+    } pakde gaye {
+      bol "Abhi tum bacche ho.";
+    }
+    
+    note kar marks = 85;
+    proxy mili toh (marks >= 90) {
+      bol "A+ grade, bohot badhiya!";
+    } nahi mili toh (marks >= 80) {
+      bol "A grade, badhiya!";
+    } nahi mili toh (marks >= 70) {
+      bol "B grade, theek hai.";
+    } pakde gaye {
+      bol "Padhai karo, beta.";
+    }
+class khatam`
 }
 ]
 },
 {
   title: "Loops",
-  description: "Use 'jab tak' for while loops.",
+  description: "Statements inside `jab tak` blocks are executed as long as a specified condition evaluates to `pass`. If the condition becomes `fail`, statement within the loop stops executing and control passes to the statement following the loop. Use `bunk maar` to break the loop and `agli class` to continue within loop.",
   examples: [
     {
       title: "While Loop",
