@@ -1,0 +1,93 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: 'Baloo 2', system-ui, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+.code-editor-container {
+  @apply rounded-lg overflow-hidden shadow-lg transition-all duration-300 hover:shadow-xl;
+  background: linear-gradient(145deg, #1f2937, #111827);
+}
+
+.console-output {
+  @apply bg-secondary-800 text-white p-4 rounded-lg max-h-[250px] overflow-y-auto shadow-lg;
+  font-family: monospace;
+}
+
+.code-editor {
+  @apply font-mono p-4 bg-secondary-900 rounded-lg text-white shadow-inner;
+}
+
+/* Styled buttons */
+.btn {
+  @apply px-4 py-2 rounded-md font-medium transition duration-300 transform hover:scale-105 active:scale-95 focus:outline-none shadow-md;
+}
+
+.btn-primary {
+  @apply bg-primary-600 text-white hover:bg-primary-700;
+}
+
+.btn-accent {
+  @apply bg-accent-500 text-white hover:bg-accent-600;
+}
+
+.btn-success {
+  @apply bg-success-600 text-white hover:bg-success-700;
+}
+
+.tab {
+  @apply px-6 py-3 font-bold text-lg transition-all duration-300;
+}
+
+.tab.active {
+  @apply border-b-4 border-primary-600;
+}
+
+/* Rangoli Card Styles */
+.rangoli-card {
+  @apply rounded-lg overflow-hidden shadow-lg p-6 mb-4 bg-white dark:bg-secondary-800 transition-colors duration-200;
+}
+
+/* Console output styles */
+.console-item {
+  @apply py-1 border-b border-secondary-700 opacity-0;
+  animation: fadeIn 0.2s forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1f2937;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #FF9933;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #FF7733;
+}

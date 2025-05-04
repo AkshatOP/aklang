@@ -1,9 +1,6 @@
 import { TokenTypes } from "../Parser/tokenizer/TokenTypes.js";
 
 export const SPEC = [
-  // Whitespace \t \r \n \r\n
-//   { regex: /^[ \t\r\n]+/, tokenType: TokenTypes.NULL_TYPE },
-
 
 
   //Whitespace (spaces, tabs, newlines)  
@@ -25,25 +22,25 @@ export const SPEC = [
   { regex: /^,/, tokenType: TokenTypes.COMMA_TYPE },
 
   // AkLang Keywords
-  { regex: /^\bscene shuru\b/, tokenType: TokenTypes.SCENE_SHURU },
-  { regex: /^\bscene khatam\b/, tokenType: TokenTypes.SCENE_KHATAM },
-  { regex: /^\byaad rakh\b/, tokenType: TokenTypes.YAAD_RAKH },
+  { regex: /^\bclass chalu\b/, tokenType: TokenTypes.CLASS_CHALU },
+  { regex: /^\bclass khatam\b/, tokenType: TokenTypes.CLASS_KHATAM },
+  { regex: /^\bnote kar\b/, tokenType: TokenTypes.NOTE_KAR },
+  { regex: /^\bbol abhi\b/, tokenType: TokenTypes.BOL_ABHI },
   { regex: /^\bbol\b/, tokenType: TokenTypes.BOL },
-  { regex: /^\bbolta ja\b/, tokenType: TokenTypes.BOLTA_JA },
-  { regex: /^\bagar\b/, tokenType: TokenTypes.AGAR },
-  { regex: /^\bya toh\b/, tokenType: TokenTypes.YA_TOH },
-  { regex: /^\bwarna\b/, tokenType: TokenTypes.WARNA },
+  { regex: /^\bproxy mili toh\b/, tokenType: TokenTypes.PROXY_MILI_TOH },
+  { regex: /^\bnahi mili toh\b/, tokenType: TokenTypes.NAHI_MILI_TOH },
+  { regex: /^\bpakde gaye\b/, tokenType: TokenTypes.PAKDE_GAYE },
   { regex: /^\bjab tak\b/, tokenType: TokenTypes.JAB_TAK },
-  { regex: /^\bab bas\b/, tokenType: TokenTypes.AB_BAS },
-  { regex: /^\bagla dekh\b/, tokenType: TokenTypes.AGLA_DEKH },
+  { regex: /^\bbunk maar\b/, tokenType: TokenTypes.BUNK_MAAR },
+  { regex: /^\bagli class\b/, tokenType: TokenTypes.AGLI_CLASS },
 
   // Number
   { regex: /^[+-]?([\d]*[.])?[\d]+/, tokenType: TokenTypes.NUMBER_TYPE },
 
   
   // Boolean
-  { regex: /^\bsach\b/, tokenType: TokenTypes.BOOLEAN_TYPE },
-  { regex: /^\bjhooth\b/, tokenType: TokenTypes.BOOLEAN_TYPE },
+  { regex: /^\bpass\b/, tokenType: TokenTypes.BOOLEAN_TYPE },
+  { regex: /^\bfail\b/, tokenType: TokenTypes.BOOLEAN_TYPE },
   
   // Identifier (variable names)
   { regex: /^\w+/, tokenType: TokenTypes.IDENTIFIER_TYPE },

@@ -12,15 +12,15 @@ export class Parser {
   }
 
   parseProgram() {
-    this._eat("scene shuru");
+    this._eat(TokenTypes.CLASS_CHALU);
 
     const body = [];
 
-    while (this._lookahead && this._lookahead.type !== "scene khatam") {
+    while (this._lookahead && this._lookahead.type !== TokenTypes.CLASS_KHATAM) {
       body.push(this.parseStatement());
     }
 
-    this._eat("scene khatam");
+    this._eat(TokenTypes.CLASS_KHATAM);
 
     return {
       type: NodeType.Program,
@@ -34,22 +34,22 @@ export class Parser {
       case TokenTypes.BOL:
         return this.parsePrintStatement();
 
-      case TokenTypes.BOLTA_JA:
+      case TokenTypes.BOL_ABHI:
         return this.parseSameLinePrintStatement();
 
-      case TokenTypes.YAAD_RAKH:
+      case TokenTypes.NOTE_KAR:
         return this.parseVariableDeclaration();
 
-      case TokenTypes.AGAR:
+      case TokenTypes.PROXY_MILI_TOH:
         return this.parseIfStatement();
       
       case TokenTypes.JAB_TAK:
         return this.parseWhileStatement();
 
-      case TokenTypes.AB_BAS:
+      case TokenTypes.BUNK_MAAR:
         return this.parseBreakStatement();
 
-      case TokenTypes.AGLA_DEKH:
+      case TokenTypes.AGLI_CLASS:
         return this.parseContinueStatement();
 
       case TokenTypes.SEMI_COLON_TYPE:
@@ -82,7 +82,7 @@ export class Parser {
   //Same line print statement
 
   parseSameLinePrintStatement() {
-    this._eat(TokenTypes.BOLTA_JA);
+    this._eat(TokenTypes.BOL_ABHI);
 
     const expressions = this.parseExpressionList();
 
@@ -99,7 +99,7 @@ export class Parser {
 
   parseVariableDeclaration() {
 
-    this._eat(TokenTypes.YAAD_RAKH);
+    this._eat(TokenTypes.NOTE_KAR);
     const declarations = this._getVariableDeclarationList();
     this._eat(TokenTypes.SEMI_COLON_TYPE);
 
@@ -176,7 +176,7 @@ export class Parser {
   // Break Statement
 
   parseBreakStatement() {
-    this._eat(TokenTypes.AB_BAS);
+    this._eat(TokenTypes.BUNK_MAAR);
 
 
     return {
@@ -187,7 +187,7 @@ export class Parser {
   // Continue Statement
 
   parseContinueStatement() {
-    this._eat(TokenTypes.AGLA_DEKH);
+    this._eat(TokenTypes.AGLI_CLASS);
 
 
     return {
@@ -207,24 +207,24 @@ export class Parser {
   //If Statement
 
   parseIfStatement() {
-    const HANDLED_LOOP_TOKEN_TYPES = [TokenTypes.WARNA, TokenTypes.YA_TOH];
+    const HANDLED_LOOP_TOKEN_TYPES = [TokenTypes.PAKDE_GAYE, TokenTypes.NAHI_MILI_TOH];
 
-    this._eat(TokenTypes.AGAR);
+    this._eat(TokenTypes.PROXY_MILI_TOH);
     this._eat(TokenTypes.OPEN_PARENTHESIS_TYPE);
     
     const check = this.parseBinaryRelationalExpression();
     this._eat(TokenTypes.CLOSED_PARENTHESIS_TYPE);
     
     if (this._lookahead == null) {
-      throw new SyntaxError(`Unexpected end of AGAR statement`);
+      throw new SyntaxError(`Unexpected end of PROXY_MILI_TOH statement`);
     }
     const consequent = this.parseBlockStatement();
 
     let alternate = []; // Initialize alternate as an empty array
 
     // Handle `ya toh` (else if) clauses
-    while (this._lookahead?.type === TokenTypes.YA_TOH) {
-      this._eat(TokenTypes.YA_TOH); // Consume `ya toh`
+    while (this._lookahead?.type === TokenTypes.NAHI_MILI_TOH) {
+      this._eat(TokenTypes.NAHI_MILI_TOH); // Consume `ya toh`
       this._eat(TokenTypes.OPEN_PARENTHESIS_TYPE); // Consume `(`
       
       const elseIfTest = this.parseBinaryRelationalExpression(); // Parse the condition
@@ -240,9 +240,9 @@ export class Parser {
     }
 
 
-    // Handle `warna` (else) clause
-    if (this._lookahead?.type === TokenTypes.WARNA) {
-      this._eat(TokenTypes.WARNA); // Consume `warna`
+    // Handle `PAKDE_GAYE` (else) clause
+    if (this._lookahead?.type === TokenTypes.PAKDE_GAYE) {
+      this._eat(TokenTypes.PAKDE_GAYE); // Consume `PAKDE_GAYE`
       const elseBlock = this.parseBlockStatement(); // Parse the block for the `else` body
       
       alternate.push({

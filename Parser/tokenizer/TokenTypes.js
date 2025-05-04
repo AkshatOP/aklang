@@ -1,37 +1,22 @@
 export const TokenTypes = {
     NULL_TYPE: null,
-  
-    SCENE_SHURU: "scene shuru",
-    SCENE_KHATAM: "scene khatam",
-    YAAD_RAKH: "yaad rakh",
+
+    CLASS_CHALU: "class chalu",
+    CLASS_KHATAM: "class khatam",
+    NOTE_KAR: "note kar",
     BOL: "bol",
-    AGAR: "agar",
-    YA_TOH: "ya toh",
-    WARNA: "warna",
+    BOL_ABHI: "bol abhi",
+
+    PROXY_MILI_TOH: "proxy mili toh",
+    NAHI_MILI_TOH: "nahi mili toh",
+    PAKDE_GAYE: "pakde gye",
     JAB_TAK: "jab tak",
-    AB_BAS: "ab bas",
-    AGLA_DEKH: "agla dekh",
-    BOLTA_JA: "bolta ja",
 
-    SACH: "sach",
-    JHOOTH: "jhooth",
+    BUNK_MAAR: "bunk maar",
+    AGLI_CLASS: "agli class",
 
-    // SCENE_SHURU: "class chalu",
-    // SCENE_KHATAM: "class khatam",
-    // YAAD_RAKH: "note kar",
-    // BOL: "bol be",
-    // BOLTA_JA: "bol rha hu",
-
-    // AGAR: "agar",
-    // YA_TOH: "ya toh",
-    // WARNA: "warna",
-    // JAB_TAK: "jab tak",
-
-    // AB_BAS: "bunk maar",
-    // AGLA_DEKH: "agla class",
-
-    // SACH: "pass",
-    // JHOOTH: "fail",
+    PASS: "pass",
+    FAIL: "fail",
   
     SEMI_COLON_TYPE: ";",
     OPEN_CURLY_BRACE_TYPE: "{",

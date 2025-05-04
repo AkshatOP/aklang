@@ -113,11 +113,17 @@ export class Interpreter {
         // console.log(node.expressions)
         let values = node.expressions.map(expression => {
             const result = this.visit(expression);
-
             return result // Convert the result to a string
         });
-
-        process.stdout.write(values.join(" ") + " "); // Print the evaluated expressions in a line;
+        
+        // if(typeof process !== 'undefined' && process.stdout){
+        //     console.log("in node")
+        //     process.stdout.write(values.join(" ") + " "); // Print the evaluated expressions in a line;
+        // }else{
+        //     // This is the browser
+        //     console.log("in browser")
+        //     console.log(values.join(" "));
+        // }
     }
 
     visitVariableStatement(node) {
