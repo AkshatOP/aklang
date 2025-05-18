@@ -1,4 +1,4 @@
-import RuntimeException from "./exceptions/runtimeException";
+// import RuntimeException from "./exceptions/runtimeException";
 
 
 export default class Scope {
