@@ -51,8 +51,8 @@ class khatam`
         bol "a / b =", a / b;
         bol "a ** b =", a ** b;
         
-        note kar firstName = "Raj";
-        note kar lastName = "Sharma";
+        note kar firstName = "Akshat";
+        note kar lastName = "Baranwal";
         note kar fullName = firstName + " " + lastName;
         bol "Full Name:", fullName;
 class khatam`
@@ -97,8 +97,19 @@ class khatam`
       description: "Repeat while condition is true.",
       code: `class chalu
       note kar count = 1;
-      jab tak (count <= 5) {
+      jab tak (count <= 10) {
+      
+        proxy mili toh ( count == 5 ) {
+          count += 1;
+          agli class;
+        } 
+        
+        proxy mili toh ( count == 8 ) {
+          bunk maar;
+        }
+        
         bol "Count is:", count;
+        
     count += 1;
   }
 class khatam`

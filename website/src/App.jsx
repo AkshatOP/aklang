@@ -15,10 +15,9 @@ function App() {
         <header className="bg-white dark:bg-secondary-800 shadow-md">
           <div className="container mx-auto px-4 py-4">
             <div className="flex justify-between items-center mb-4">
-              <h1 className="text-4xl font-bold text-center text-primary-600">
-                <span className="text-bhagwa">AK</span>
-                <span className="text-neela">Lang</span> 
-              </h1>
+              <div className="h-28 overflow-hidden w-fit">
+                <img src="aklang.png" alt="AKLang logo" className="h-40 object-cover" />
+              </div>
               <ThemeToggle />
             </div>
             <div className={`text-l mt-2 `}>
