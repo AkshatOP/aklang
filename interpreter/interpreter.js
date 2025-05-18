@@ -116,14 +116,6 @@ export class Interpreter {
             return result // Convert the result to a string
         });
         
-        // if(typeof process !== 'undefined' && process.stdout){
-        //     console.log("in node")
-        //     process.stdout.write(values.join(" ") + " "); // Print the evaluated expressions in a line;
-        // }else{
-        //     // This is the browser
-        //     console.log("in browser")
-        //     console.log(values.join(" "));
-        // }
     }
 
     visitVariableStatement(node) {
