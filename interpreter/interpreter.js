@@ -4,23 +4,31 @@ import  InvalidStateException  from "./exceptions/invalidStateException.js";
 import RuntimeException from "./exceptions/runtimeException.js";
 import NullPointerException from "./exceptions/nullPointerException.js";
 
+// Safety cap so an infinite loop can't freeze the CLI or the browser playground.
+const MAX_LOOP_ITERATIONS = 5000;
+
 
 export class Interpreter {
     constructor(ast) {
         this.ast = ast;
-        this._currentScope = new Scope(null); // Initialize the global scope
+        // Text printed by `bol abhi` that is still waiting for the end of its line.
+        // Everything goes out through console.log, so the CLI and the browser
+        // playground capture output the same way.
+        this._pendingOutput = "";
+        Interpreter.setCurrentScope(new Scope(null)); // Fresh global scope for every run
     }
 
     interpret() {
         try{
-        this.visit(this.ast); // Start interpreting the AST
+            this.visit(this.ast); // Start interpreting the AST
         } finally {
+            this._flushOutput();
             Interpreter.setCurrentScope(new Scope(null)); // Reset the scope after interpretation
         }
     }
 
     visit(node) {
-        
+
         switch(node.type) {
             case NodeType.Program:
                 return this.visitProgram(node);
@@ -58,6 +66,12 @@ export class Interpreter {
             case NodeType.BinaryExpression:
                 return this.visitBinaryExpression(node);
 
+            case NodeType.LogicalExpression:
+                return this.visitLogicalExpression(node);
+
+            case NodeType.UnaryExpression:
+                return this.visitUnaryExpression(node);
+
             case NodeType.BlockStatement:
                 return this.visitBlockStatement(node);
 
@@ -66,7 +80,7 @@ export class Interpreter {
 
             case NodeType.WhileStatement:
                 return this.visitWhileStatement(node);
-            
+
             case NodeType.VariableStatement:
                 return this.visitVariableStatement(node);
 
@@ -84,15 +98,36 @@ export class Interpreter {
 
 
         }
-        
+
     }
-    
+
 
     visitProgram(node) {
         for (const statement of node.body) {
             this.visit(statement); // Visit each statement in the program
         }
-        process.stdout.write('\n'); // Flush remaining buffered output
+    }
+
+    // ---------- Output ----------
+
+    // Booleans are stored as real JS true/false and only shown as pass/fail here.
+    _formatValue(value) {
+        if (value === true) return "pass";
+        if (value === false) return "fail";
+        return String(value);
+    }
+
+    _evaluateToText(expressions) {
+        return expressions
+            .map(expression => this._formatValue(this.visit(expression)))
+            .join(" ");
+    }
+
+    _flushOutput() {
+        if (this._pendingOutput !== "") {
+            console.log(this._pendingOutput);
+            this._pendingOutput = "";
+        }
     }
 
     visitPrintStatement(node) {
@@ -100,8 +135,9 @@ export class Interpreter {
             throw new InvalidStateException(
               `print karne kuch de toh: ${node.expressions}`
         );
-        let values = node.expressions.map(expression => this.visit(expression));
-        console.log(...values); // Print the evaluated expressions
+        const text = this._evaluateToText(node.expressions);
+        console.log(this._pendingOutput + text); // Finish any `bol abhi` line, then end it
+        this._pendingOutput = "";
     }
 
     visitSameLinePrintStatement(node) {
@@ -110,13 +146,10 @@ export class Interpreter {
                 `print karne kuch de toh: ${node.expressions}`
             );
         }
-        // console.log(node.expressions)
-        let values = node.expressions.map(expression => {
-            const result = this.visit(expression);
-            return result // Convert the result to a string
-        });
-        
+        this._pendingOutput += this._evaluateToText(node.expressions); // No newline yet
     }
+
+    // ---------- Variables ----------
 
     visitVariableStatement(node) {
         if (!node.declarations)
@@ -137,22 +170,8 @@ export class Interpreter {
             );
         }
 
-        const identifier = node.id.name; // Get the variable name
-        let value;
-
-        if(node.init.type === NodeType.BooleanLiteral) {
-            value = node.init.value == "pass" ? true : false; // Evaluate the initializer
-        } else if (node.init.type === NodeType.NullLiteral) {
-            value = null; // Handle null literal
-        } else {
-            value = this.visit(node.init); // Visit the initializer
-        }
-
-        const currentScope = Interpreter.getCurrentScope(); // Get the current scope
-
-        if (identifier) {
-            currentScope.declare(identifier, value);
-        }
+        const value = this.visit(node.init); // NullLiteral evaluates to null
+        Interpreter.getCurrentScope().declare(node.id.name, value);
     }
 
 
@@ -162,8 +181,6 @@ export class Interpreter {
         }
     }
 
-    
-
 
     visitIdentifierExpression(node) {
         if(!node.name) {
@@ -172,63 +189,36 @@ export class Interpreter {
             );
         }
 
-        let value = Interpreter.getCurrentScope().get(node.name); // Get the variable value from the current scope
-        
-        if(value === null) value = null; // Handle null value
-        else if(value === true) value = "pass"; // Convert boolean to string
-        else if(value === false) value = "fail"; // Convert boolean to string
-
-        return value; // Return the variable value
-       
+        return Interpreter.getCurrentScope().get(node.name); // Walks up parent scopes
     }
 
     visitAssignmentExpression(node) {
-        if(!node.left) {
+        if(!node.left || !node.left.name) {
             throw new InvalidStateException(
                 `left node not present: ${node.type}`
             );
         }
 
-        let identifier = node.left.name; // Get the variable name
-        let operator = node.operator; // Get the assignment operator
-        let right;
-        const currentScope = Interpreter.getCurrentScope(); // Get the current scope
+        const identifier = node.left.name;
+        const operator = node.operator;
+        const right = this.visit(node.right);
+        const currentScope = Interpreter.getCurrentScope();
 
-        if(node.right){
-            right = this.visit(node.right); // Visit the right side of the assignment
+        if (operator === "=") {
+            currentScope.assign(identifier, right);
+            return right;
         }
 
-        if (identifier && operator) {
+        // Compound assignment (+=, -=, ...) applies the operator to the current value
+        const left = currentScope.get(identifier);
+        this._checkOperands(left, right, operator);
 
-            const left = currentScope.get(identifier);
-
-
-            if( left === null && operator !== "=") {
-                throw new NullPointerException(
-                    `Null ese kaam nahi karta: ${node.left} ${node.operator} ${node.right}`
-                );
-            }
-
-            if(left == true && right == false && operator !== "=") {
-                throw new RuntimeException( 
-                    `pass aur fail ese kaam nahi karta: ${node.left} ${node.operator} ${node.right}`
-                );
-            }
-
-            const newValue = this.getOperatorFunction({left, right} , operator);
-            currentScope.assign(identifier , newValue);
-
-            return currentScope.get(identifier);
-        }
-
-
-
-
+        const newValue = this.getOperatorFunction({left, right} , operator);
+        currentScope.assign(identifier , newValue);
+        return newValue;
     }
 
-
-
-
+    // ---------- Expressions ----------
 
     visitBinaryExpression(node) {
         if(!node.left || !node.right || !node.operator) {
@@ -237,234 +227,154 @@ export class Interpreter {
             );
         }
 
-        let left;
-        let right;
+        const left = this.visit(node.left);
+        const right = this.visit(node.right);
 
-        // handling logical & binary both at the same place as both operate on two operands
-        if(node.type == NodeType.BinaryExpression){
-            if(node.operator !== "==" && node.operator !== "!=") {
-                this._checkNull(node);
-                this._checkBoolean(node);
-            }
-
-            left = this._getNodeValue(node.left); // Visit the left operand
-            right = this._getNodeValue(node.right); // Visit the right operand
-
-        } else if(node.type == NodeType.LogicalExpression) {
-            this._checkNull(node);
-
-            left = node.left.type == NodeType.BooleanLiteral ? (node.left.value == "pass" ? true : false) : this.visit(node.left);
-
-            right = node.right.type == NodeType.BooleanLiteral ? (node.right.value == "pass" ? true : false) : this.visit(node.right);
-
+        // == and != may compare anything (including null and booleans)
+        if(node.operator !== "==" && node.operator !== "!=") {
+            this._checkOperands(left, right, node.operator);
         }
 
-        return this.getOperatorFunction({left , right} , node.operator); // Return the result of the binary operation
+        return this.getOperatorFunction({left , right} , node.operator);
     }
 
+    // && and || short-circuit: the right side is only evaluated if it can change the result.
+    visitLogicalExpression(node) {
+        const left = this.visit(node.left);
+        this._checkLogicalOperand(left, node.operator);
 
-    _checkNull(node) {
-        if (!node.left || !node.right || !node.operator) {
-            throw new InvalidStateException(
-            `Left , right or operator not found for: ${node.type}` 
-            );// Check if left, right, or operator is not found
+        if (node.operator === "&&" && left === false) return false;
+        if (node.operator === "||" && left === true) return true;
+
+        const right = this.visit(node.right);
+        this._checkLogicalOperand(right, node.operator);
+        return right;
+    }
+
+    visitUnaryExpression(node) {
+        const value = this.visit(node.argument);
+
+        if (typeof value !== "number") {
+            throw new RuntimeException(
+                `"${node.operator}" sirf number ke sath chalta hai, "${this._formatValue(value)}" ke sath nahi`
+            );
         }
 
-        const nullException = new NullPointerException(
-            `Null operand ni chalta "${node.operator}" ke sath`
-        ); // Create a new NallaPointerException
+        return node.operator === "-" ? -value : value;
+    }
 
-        if (
-            node.left.type === NodeType.NullLiteral ||
-            node.right.type === NodeType.NullLiteral
-        )
-            throw nullException; // Check if left or right operand is null
-
-        if (node.left.type === NodeType.IdentifierExpression && node.left.name) {
-            const value = Interpreter.getCurrentScope().get(node.left.name);
-            if (value === null) throw nullException;
+    _checkOperands(left, right, operator) {
+        if (left === null || right === null) {
+            throw new NullPointerException(
+                `Null operand ni chalta "${operator}" ke sath`
+            );
         }
 
-        if (node.right.type === NodeType.IdentifierExpression && node.right.name) {
-            const value = Interpreter.getCurrentScope().get(node.right.name);
-            if (value === null) throw nullException;
+        if (typeof left === "boolean" || typeof right === "boolean") {
+            throw new RuntimeException(
+                `Boolean operand ni chalta "${operator}" ke sath`
+            );
         }
     }
-    
-    _checkBoolean(node) {
-    
-        if (!node.left || !node.right || !node.operator) {
-          throw new InvalidStateException(
-            `Left , right or operator not found for: ${node.type}`
-          );
-        }
-    
-        const runtimeException = new RuntimeException(
-          `Boolean operand ni chalta "${node.operator}" ke sath`
-        );
-    
-        if (
-          node.left.type === NodeType.BooleanLiteral ||
-          node.right.type === NodeType.BooleanLiteral
-        )
-          throw runtimeException;
-    
-        if (node.left.type === NodeType.IdentifierExpression && node.left.name) {
-          const value = Interpreter.getCurrentScope().get(node.left.name);
-          if (value === true || value === false) throw runtimeException;
-        }
-    
-        if (node.right.type === NodeType.IdentifierExpression && node.right.name) {
-          const value = Interpreter.getCurrentScope().get(node.right.name);
-          if (value === true || value === false) throw runtimeException;
+
+    _checkLogicalOperand(value, operator) {
+        if (typeof value !== "boolean") {
+            throw new RuntimeException(
+                `"${operator}" ke sath sirf pass/fail chalta hai, "${this._formatValue(value)}" nahi`
+            );
         }
     }
-    
-    _getNodeValue(node) {
-    
-        if (node.type === NodeType.NullLiteral)
-          return null;
-    
-        if (node.type === NodeType.BooleanLiteral) {
-          return node.value === "sahi" ? true : false;
-        }
-    
-        if (node.type === NodeType.IdentifierExpression && node.name)
-          return Interpreter.getCurrentScope().get(node.name);
-    
-        return this.visit(node); // Visit the node to get its value
-    }
+
+    // ---------- Blocks and control flow ----------
+    //
+    // break / continue are flags on the scope. A statement sets the flag, every
+    // block stops running its remaining statements once a flag is set and copies
+    // the flag up to its parent scope, and the loop reads and clears it.
 
     visitBlockStatement(node) {
-        const parentScope = Interpreter.getCurrentScope(); // Get the parent scope
-        Interpreter.setCurrentScope(parentScope); // Set the new scope as the current scope
+        const parentScope = Interpreter.getCurrentScope();
+        const blockScope = new Scope(parentScope); // New scope per block run, so `note kar` in a loop body works every pass
+        blockScope.setLoop(parentScope.isLoop()); // break/continue are legal if any enclosing scope is a loop
 
-        Interpreter.getCurrentScope().setLoop(parentScope.isLoop()); // Set the loop status in the new scope
+        Interpreter.setCurrentScope(blockScope);
 
-        if(Array.isArray(node.body) ) {
-            node.body.every(line => {
-                if(Interpreter.getCurrentScope().isBreakStatement()) {
-                    return false; // Break statement encountered, exit the loop
+        try {
+            for (const statement of node.body) {
+                this.visit(statement);
+
+                if (blockScope.isBreakStatement() || blockScope.isContinueStatement()) {
+                    break; // Skip the rest of this block
                 }
-
-                if(Interpreter.getCurrentScope().isContinueStatement()) {
-                    Interpreter.getCurrentScope().setContinueStatement(true); // Reset continue statement
-                    return false; // Continue to the next iteration
-                }
-
-                this.visit(line); // Visit each line in the block
-                return true; // Continue to the next line
-            });
+            }
+        } finally {
+            Interpreter.setCurrentScope(parentScope);
         }
 
-        parentScope.setBreakStatement(Interpreter.getCurrentScope().isBreakStatement()); // Set the break statement status in the parent scope
-        Interpreter.setCurrentScope(parentScope); // Reset the current scope to the parent scope
+        // Hand the flags to the enclosing scope so the loop can see them
+        parentScope.setBreakStatement(blockScope.isBreakStatement());
+        parentScope.setContinueStatement(blockScope.isContinueStatement());
+    }
 
+    _isTrue(value) {
+        return value === true;
     }
 
     visitIfStatement(node) {
-        const test = node.test; // Evaluate the test condition
-        const parentScope = Interpreter.getCurrentScope(); // Get the parent scope
-        
-        
+        if (this._isTrue(this.visit(node.test))) {
+            this.visit(node.consequent);
+            return;
+        }
 
-        if(test) {
-            const testResult = this.visit(test);
-            if(testResult === true || testResult === "pass" ) {
-                
-            this.evaluateNode(node.consequent , parentScope);
-            
-        } else {
-            const alternates = node.alternates;
-            if( alternates && alternates.length > 0){
-                for( var alternate of alternates) {
-                    const alternateTest = alternate.test;
-                    if(!alternateTest){
-                        //we got to warna condition so we terminate
-                        this.evaluateNode(alternate, parentScope);
-                        break;
-                    } else {
-                        // Evaluate the "test" condition of the "ya toh" node
-                        // If the condition is true, evaluate the node and break
-                        const testResult = this.visit(alternateTest);
-                        if (testResult === true || testResult === "pass" ) {
-                            this.evaluateNode(alternate.consequent , parentScope);
-                            break;
-                        }
-                    }
-                }
+        for (const alternate of node.alternates ?? []) {
+            if (!alternate.test) {
+                // `pakde gaye` (else) has no test, and is always last
+                this.visit(alternate);
+                return;
             }
-            
+
+            // `nahi mili toh` (else if)
+            if (this._isTrue(this.visit(alternate.test))) {
+                this.visit(alternate.consequent);
+                return;
+            }
         }
     }
-        parentScope.setBreakStatement(Interpreter.getCurrentScope().isBreakStatement());
-        parentScope.setContinueStatement(Interpreter.getCurrentScope().isContinueStatement());
-    
-        Interpreter.setCurrentScope(parentScope);
-    }
-
-    evaluateNode(node, parentScope) {
-        if (node) {
-          Interpreter.setCurrentScope(new Scope(parentScope));
-          Interpreter.getCurrentScope().setLoop(parentScope.isLoop());
-          this.visit(node);
-        }
-      }
-
-    
-
-
-
-
-
 
     visitWhileStatement(node) {
-        const test = node.test;
-    if (test) {
-      const getConditionValue = ()=> this.visit(test);
+        const parentScope = Interpreter.getCurrentScope();
+        const loopScope = new Scope(parentScope); // Holds this loop's break/continue flags
+        loopScope.setLoop(true);
 
-      const parentScope = Interpreter.getCurrentScope();
+        Interpreter.setCurrentScope(loopScope);
 
-      Interpreter.setCurrentScope(new Scope(parentScope));
-      
-      Interpreter.getCurrentScope().setLoop(true);
+        try {
+            let executions = 0;
 
+            while (this._isTrue(this.visit(node.test))) {
+                executions++;
+                if (executions > MAX_LOOP_ITERATIONS) {
+                    throw new RuntimeException("Tham ja re , loop infinite ho gaya hai");
+                }
 
-      for (let testResult = getConditionValue(), executions = 0; testResult === true || testResult === "pass"; testResult = getConditionValue(), executions++) {
+                this.visit(node.body);
 
-        if (Interpreter.getCurrentScope().isBreakStatement()) {
-          break;
+                if (loopScope.isBreakStatement()) {
+                    break;
+                }
+
+                loopScope.setContinueStatement(false); // `agli class` only skips the rest of this pass
+            }
+        } finally {
+            Interpreter.setCurrentScope(parentScope);
         }
-
-        if (executions > 5000) {
-          throw new RuntimeException("Tham ja re , loop infinite ho gaya hai");
-        }
-
-
-        if(Interpreter.getCurrentScope().isContinueStatement()){
-          Interpreter.getCurrentScope().setContinueStatement(false);
-          continue;
-        }
-
-        const body = node.body;
-        if (body && !Array.isArray(body)) {
-          this.visit(body);
-        }
-      }
-
-      Interpreter.setCurrentScope(parentScope);
     }
-
-    }
-
-    
 
 
     visitBreakStatement(node) {
         if (Interpreter.getCurrentScope().isLoop()) {
             Interpreter.getCurrentScope().setBreakStatement(true);
         } else {
-            throw new SyntaxError(`Loop kahan hai? "ab bas" nahi chalega`);
+            throw new SyntaxError(`Loop kahan hai? "bunk maar" nahi chalega`);
         }
     }
 
@@ -472,34 +382,33 @@ export class Interpreter {
         if (Interpreter.getCurrentScope().isLoop()) {
             Interpreter.getCurrentScope().setContinueStatement(true);
         } else {
-            throw new SyntaxError(`Loop kahan hai? "agla dekh" nahi chalega`);
+            throw new SyntaxError(`Loop kahan hai? "agli class" nahi chalega`);
         }
     }
 
+    // ---------- Operators ----------
+
     getOperatorFunction(operands , operator){
 
-        const exception = new SyntaxError(
+        const exception = new RuntimeException(
             `Kya krra: "${operator}" ke sath "${typeof operands.left}" aur "${typeof operands.right}" nahi chalte.`
         );
 
         switch(operator) {
-            case "=":
-                return operands.right;
-
             case "+=":
             case "+":
                 if (this.checkNumberOperands(operands)) {
                     return operands.left + operands.right;
                 }
-        
+
                 if (this.checkStringOperands(operands)) {
                     return operands.left + operands.right;
                 }
-        
+
                 if (this.checkNumberAndStringOperands(operands)) {
                     return operands.left.toString() + operands.right.toString();
                 }
-        
+
                 throw exception;
 
             case "-=":
@@ -507,7 +416,7 @@ export class Interpreter {
                 if (this.checkNumberOperands(operands)) {
                     return operands.left - operands.right;
                 }
-        
+
                 throw exception;
 
             case "*=":
@@ -515,78 +424,76 @@ export class Interpreter {
                 if (this.checkNumberOperands(operands)) {
                 return operands.left * operands.right;
                 }
-        
+
                 throw exception;
-        
+
             case "/=":
             case "/":
                 if (operands.right === 0) {
                 throw new RuntimeException(`zero se divide ni karte re`);
                 }
-                
+
                 if (this.checkNumberOperands(operands)) {
                 return operands.left / operands.right;
                 }
-        
+
                 throw exception;
-            
+
             case "%=":
             case "%":
+                if (operands.right === 0) {
+                throw new RuntimeException(`zero se modulo ni karte re`);
+                }
+
                 if (this.checkNumberOperands(operands)) {
                 return operands.left % operands.right;
                 }
-        
+
                 throw exception;
 
             case "**":
                 if (this.checkNumberOperands(operands)) {
                 return operands.left ** operands.right;
                 }
-        
+
                 throw exception;
-        
+
             case "==":
-                
+
                 return operands.left === operands.right;
-            
+
             case "!=":
-        
+
                 return operands.left !== operands.right;
-            
+
             case ">":
                 if (this.checkNumberOperands(operands)) {
                 return operands.left > operands.right;
                 }
-        
+
                 throw exception;
-            
+
             case "<":
                 if (this.checkNumberOperands(operands)) {
                 return operands.left < operands.right;
                 }
-        
+
                 throw exception;
-            
+
             case ">=":
                 if (this.checkNumberOperands(operands)) {
                 return operands.left >= operands.right;
                 }
-        
+
                 throw exception;
-        
+
             case "<=":
                 if (this.checkNumberOperands(operands)) {
                 return operands.left <= operands.right;
                 }
-        
+
                 throw exception;
-        
-            case "&&":
-                return operands.left && operands.right;
-        
-            case "||":
-                return operands.left || operands.right;
-        
+
             default:
                 throw new InvalidStateException(`Unsupported operator: ${operator}`);
 
@@ -603,18 +510,19 @@ export class Interpreter {
     }
 
     checkStringOperands(operands){
-        
+
         return (
           typeof operands.left === "string" && typeof operands.right === "string"
         );
       }
-      
+
     checkNumberAndStringOperands(operands){
         return (
           (typeof operands.left === "string" && typeof operands.right === "number") || (typeof operands.right === "string" && typeof operands.left === "number")
         );
-      } 
+      }
 
+    // ---------- Literals ----------
 
     visitEmptyLiteral(node) {
         // Handle empty statement (no operation)
@@ -631,7 +539,7 @@ export class Interpreter {
     }
 
     visitBooleanLiteral(node) {
-        return node.value; // Return the numeric value
+        return node.value === "pass"; // Token text "pass"/"fail" -> real boolean
     }
 
     visitStringLiteral(node) {

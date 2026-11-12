@@ -1,5 +1,7 @@
 export const NodeType = {
   BinaryExpression: "BinaryExpression",
+  LogicalExpression: "LogicalExpression",
+  UnaryExpression: "UnaryExpression",
   BlockStatement: "BlockStatement",
   RelationalExpression: "RelationalExpression",
   EqualityExpression: "EqualityExpression",
@@ -23,4 +25,3 @@ export const NodeType = {
   BooleanLiteral: "BooleanLiteral",
   Program: "Program",
 };
-  

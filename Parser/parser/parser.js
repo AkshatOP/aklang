@@ -161,7 +161,7 @@ export class Parser {
     this._eat(TokenTypes.JAB_TAK);
     this._eat(TokenTypes.OPEN_PARENTHESIS_TYPE);
 
-    const test = this.parseBinaryRelationalExpression();
+    const test = this.parseExpression();
     this._eat(TokenTypes.CLOSED_PARENTHESIS_TYPE);
 
     const body = this.parseBlockStatement();
@@ -212,7 +212,7 @@ export class Parser {
     this._eat(TokenTypes.PROXY_MILI_TOH);
     this._eat(TokenTypes.OPEN_PARENTHESIS_TYPE);
     
-    const check = this.parseBinaryRelationalExpression();
+    const check = this.parseExpression();
     this._eat(TokenTypes.CLOSED_PARENTHESIS_TYPE);
     
     if (this._lookahead == null) {
@@ -222,16 +222,16 @@ export class Parser {
 
     let alternate = []; // Initialize alternate as an empty array
 
-    // Handle `ya toh` (else if) clauses
+    // Handle `nahi mili toh` (else if) clauses
     while (this._lookahead?.type === TokenTypes.NAHI_MILI_TOH) {
-      this._eat(TokenTypes.NAHI_MILI_TOH); // Consume `ya toh`
+      this._eat(TokenTypes.NAHI_MILI_TOH); // Consume `nahi mili toh`
       this._eat(TokenTypes.OPEN_PARENTHESIS_TYPE); // Consume `(`
       
-      const elseIfTest = this.parseBinaryRelationalExpression(); // Parse the condition
+      const elseIfTest = this.parseExpression(); // Parse the condition
       this._eat(TokenTypes.CLOSED_PARENTHESIS_TYPE); // Consume `)`
       const elseIfConsequent = this.parseBlockStatement(); // Parse the block for the `else if` body
 
-      // Nest the `ya toh` clause as an alternate
+      // Store the `nahi mili toh` clause as an alternate
       alternate.push({
           type: NodeType.IfStatement,
           test: elseIfTest,
@@ -264,7 +264,7 @@ export class Parser {
 
   expressionStatement() {
 
-    let init = this.parseAssignmentExpression();
+    let init = this.parseExpression();
     this._eat(TokenTypes.SEMI_COLON_TYPE); // Consume the semicolon
     return {
       type: NodeType.ExpressionStatement,
@@ -290,30 +290,153 @@ export class Parser {
     return ExpressionList
   }
 
+  // Expressions, lowest precedence first. Each level calls the next one,
+  // so operators lower in this list bind tighter:
+  //   assignment  =  +=  -=  *=  /=  %=   (right-associative)
+  //   logical or  ||
+  //   logical and &&
+  //   equality    ==  !=
+  //   relational  <  >  <=  >=
+  //   additive    +  -
+  //   multiplicative  *  /  %
+  //   unary       -x  +x
+  //   power       **                    (right-associative)
+  //   primary     literal, identifier, ( expression )
+
   parseExpression() {
-    return this.parseBinaryExpression();
+    return this.parseAssignmentExpression();
   }
 
+  parseAssignmentExpression() {
+    const left = this.parseLogicalOrExpression();
 
+    if (!this._isAssignmentOperator(this._lookahead?.type)) {
+      return left;
+    }
 
-  parseBinaryExpression() {
-    let left = this._parsePrimaryExpression();
-    
-    while (this._isBinaryOperator(this._lookahead?.type)) {
+    const operator = this._eat(this._lookahead.type);
 
-      const operator = this._eat(this._lookahead.type);      
-      const right = this._parsePrimaryExpression();
-  
-      left = {
+    if (left.type !== NodeType.IdentifierExpression) {
+      throw new SyntaxError(
+        `Line ${operator.line}: "${operator.value}" ke left mein variable chahiye`
+      );
+    }
+
+    // Recursing (instead of looping) makes a = b = 5 group as a = (b = 5)
+    const right = this.parseAssignmentExpression();
+
+    return {
+      type: NodeType.AssignmentExpression,
+      operator: operator.value,
+      left,
+      right,
+    };
+  }
+
+  parseLogicalOrExpression() {
+    return this._parseLeftAssociative(
+      [TokenTypes.LOGICAL_OR],
+      () => this.parseLogicalAndExpression(),
+      NodeType.LogicalExpression
+    );
+  }
+
+  parseLogicalAndExpression() {
+    return this._parseLeftAssociative(
+      [TokenTypes.LOGICAL_AND],
+      () => this.parseEqualityExpression(),
+      NodeType.LogicalExpression
+    );
+  }
+
+  parseEqualityExpression() {
+    return this._parseLeftAssociative(
+      [TokenTypes.EQUALITY_OPERATOR],
+      () => this.parseRelationalExpression()
+    );
+  }
+
+  parseRelationalExpression() {
+    return this._parseLeftAssociative(
+      [TokenTypes.RELATIONAL_OPERATOR],
+      () => this.parseAdditiveExpression()
+    );
+  }
+
+  parseAdditiveExpression() {
+    return this._parseLeftAssociative(
+      [TokenTypes.ADDITIVE_OPERATOR_TYPE],
+      () => this.parseMultiplicativeExpression()
+    );
+  }
+
+  parseMultiplicativeExpression() {
+    // ** shares the MULTIPLICATIVE token type but lives on its own level (parsePowerExpression)
+    return this._parseLeftAssociative(
+      [TokenTypes.MULTIPLICATIVE_OPERATOR_TYPE],
+      () => this.parseUnaryExpression(),
+      NodeType.BinaryExpression,
+      (token) => token.value !== "**"
+    );
+  }
+
+  parseUnaryExpression() {
+    if (this._lookahead?.type === TokenTypes.ADDITIVE_OPERATOR_TYPE) {
+      const operator = this._eat(TokenTypes.ADDITIVE_OPERATOR_TYPE);
+      return {
+        type: NodeType.UnaryExpression,
+        operator: operator.value,
+        argument: this.parseUnaryExpression(),
+      };
+    }
+
+    return this.parsePowerExpression();
+  }
+
+  parsePowerExpression() {
+    const base = this._parsePrimaryExpression();
+
+    if (
+      this._lookahead?.type === TokenTypes.MULTIPLICATIVE_OPERATOR_TYPE &&
+      this._lookahead.value === "**"
+    ) {
+      const operator = this._eat(TokenTypes.MULTIPLICATIVE_OPERATOR_TYPE);
+      // Right side goes back through unary, so 2 ** 3 ** 2 = 2 ** 9 and 2 ** -1 both work
+      const exponent = this.parseUnaryExpression();
+
+      return {
         type: NodeType.BinaryExpression,
+        operator: operator.value,
+        left: base,
+        right: exponent,
+      };
+    }
+
+    return base;
+  }
+
+  // One loop shared by every left-associative level: a - b - c => (a - b) - c
+  _parseLeftAssociative(tokenTypes, parseOperand, nodeType = NodeType.BinaryExpression, accept = () => true) {
+    let left = parseOperand();
+
+    while (
+      this._lookahead &&
+      tokenTypes.includes(this._lookahead.type) &&
+      accept(this._lookahead)
+    ) {
+      const operator = this._eat(this._lookahead.type);
+      const right = parseOperand();
+
+      left = {
+        type: nodeType,
         operator: operator.value,
         left,
         right,
       };
     }
+
     return left;
   }
-
 
   // Block Statement
 
@@ -333,44 +456,19 @@ export class Parser {
     };
   }
 
-  // Parse Binary Relational Expression
-
-  parseBinaryRelationalExpression() {
-    let left = this._parsePrimaryExpression();    
-    while (this._isRelationalOperator(this._lookahead?.type)) {      
-      const operator = this._eat(this._lookahead.type);
-      const right = this._parsePrimaryExpression();
-  
-      left = {
-        type: NodeType.BinaryExpression,
-        operator: operator.value,
-        left,
-        right,
-      };
-    }
-    return left;
-  }
-
-  parseAssignmentExpression() {
-    let left = this._parsePrimaryExpression();
-    while (this._isAssignmentOperator(this._lookahead?.type)) {
-      const operator = this._eat(this._lookahead.type);
-      const right = this.parseBinaryExpression();
-  
-      left = {
-        type: NodeType.AssignmentExpression,
-        operator: operator.value,
-        left,
-        right,
-      };
-    }
-    return left;
-
-
-  }
-
   _parsePrimaryExpression() {
     const token = this._lookahead;
+
+    if (token === null) {
+      throw new SyntaxError(`Expression adhoora hai: file khatam ho gayi`);
+    }
+
+    if(token.type === TokenTypes.OPEN_PARENTHESIS_TYPE) {
+      this._eat(TokenTypes.OPEN_PARENTHESIS_TYPE);
+      const expression = this.parseExpression();
+      this._eat(TokenTypes.CLOSED_PARENTHESIS_TYPE);
+      return expression;
+    }
 
     if(token.type === TokenTypes.STRING_TYPE) {
       return this.parseString();
@@ -388,7 +486,7 @@ export class Parser {
       return this.parseBoolean();
     }
 
-    throw new SyntaxError(`Unexpected token in primary expression: ${token.type}`)
+    throw new SyntaxError(`Line ${token.line}: Unexpected token "${token.value}"`)
 
   }
 
@@ -425,13 +523,6 @@ export class Parser {
     }
   }
   
-  _isBinaryOperator(type) {
-    return [TokenTypes.ADDITIVE_OPERATOR_TYPE,TokenTypes.MULTIPLICATIVE_OPERATOR_TYPE].includes(type);
-  }
-
-  _isRelationalOperator(type) {
-    return [TokenTypes.RELATIONAL_OPERATOR,TokenTypes.EQUALITY_OPERATOR].includes(type);
-  }
   _isAssignmentOperator(type) {
     return [TokenTypes.SIMPLE_ASSIGN_TYPE,TokenTypes.COMPLEX_ASSIGN_TYPE].includes(type);
   }
@@ -446,8 +537,14 @@ export class Parser {
   _eat(tokenType) {
     const token = this._lookahead;
 
-    if (token === null || token.type.toLowerCase() !== tokenType.toLowerCase()) {
-      throw new SyntaxError(`Expected token: ${tokenType}, got ${token?.type}`);
+    if (token === null) {
+      throw new SyntaxError(`Expected "${tokenType}", but file khatam ho gayi`);
+    }
+
+    if (token.type !== tokenType) {
+      throw new SyntaxError(
+        `Line ${token.line}: Expected "${tokenType}", got "${token.value}"`
+      );
     }
 
     this._lookahead = this._tokenizer.getNextToken();

@@ -1,4 +1,4 @@
-// import RuntimeException from "./exceptions/runtimeException";
+import RuntimeException from "./exceptions/runtimeException.js";
 
 
 export default class Scope {
@@ -8,7 +8,7 @@ export default class Scope {
     this._isLoop = false;
     this._isBreakStatement = false;
     this._isContinueStatement = false;
-    this._parentScope = parentScope;
+    this._parentScope = parentScope ?? null;
   }
 
   isLoop() {

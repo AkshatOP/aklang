@@ -1,7 +1,8 @@
 import { SPEC } from "../../constants/specs.js";
 
 export class Tokenizer {
-    constructor(){
+    constructor(spec = SPEC){
+        this._spec = spec;
         this._string = "";
         this._cursor = 0; //cursor from the start of the string
         this._line = 1; //line number
@@ -27,7 +28,7 @@ export class Tokenizer {
 
         const str = this._string.slice(this._cursor);
 
-        for( const { regex, tokenType } of SPEC ) {
+        for( const { regex, tokenType } of this._spec ) {
             
             const matched = regex.exec(str);
             

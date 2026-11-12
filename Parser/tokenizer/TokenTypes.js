@@ -9,7 +9,7 @@ export const TokenTypes = {
 
     PROXY_MILI_TOH: "proxy mili toh",
     NAHI_MILI_TOH: "nahi mili toh",
-    PAKDE_GAYE: "pakde gye",
+    PAKDE_GAYE: "pakde gaye",
     JAB_TAK: "jab tak",
 
     BUNK_MAAR: "bunk maar",
@@ -41,7 +41,9 @@ export const TokenTypes = {
 
     RELATIONAL_OPERATOR: "RELATIONAL_OPERATOR",
 
-    EQUALITY_OPERATOR: "EQUALITY_OPERATOR",
+    LOGICAL_AND: "LOGICAL_AND",
+
+    LOGICAL_OR: "LOGICAL_OR",
 
     BOOLEAN_TYPE: "BOOLEAN",
 

@@ -35,6 +35,7 @@ class chalu
 
     proxy mili toh (b == a) {
       bol "b is equal to a";
+      b += 1;
       agli class;
     } nahi mili toh (b == 0) {
       bol "b is equal to zero";

@@ -68,8 +68,16 @@ fs.readFile(filePath, "utf8", (err, sourceCode) => {
     const interpreter = new Interpreter(ast);
     interpreter.interpret(ast);
   } catch (ex) {
-    if (ex instanceof Error) {
-      console.error("\n", chalk.redBright(ex.stack));
-    }
+    process.exitCode = 1;
+    if (!(ex instanceof Error)) return;
+
+    // aklang's own errors (bad syntax, runtime errors) get a short message.
+    // Anything else is a bug in the interpreter itself, so show the stack.
+    const isLanguageError =
+      ex instanceof SyntaxError ||
+      ["RuntimeException", "NullPointerException", "InvalidStateException"].includes(ex.name);
+
+    const message = ex.message.startsWith(ex.name) ? ex.message : `${ex.name}: ${ex.message}`;
+    console.error("\n", chalk.redBright(isLanguageError ? message : ex.stack));
   }
 });

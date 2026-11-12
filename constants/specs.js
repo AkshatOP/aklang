@@ -34,8 +34,8 @@ export const SPEC = [
   { regex: /^\bbunk maar\b/, tokenType: TokenTypes.BUNK_MAAR },
   { regex: /^\bagli class\b/, tokenType: TokenTypes.AGLI_CLASS },
 
-  // Number
-  { regex: /^[+-]?([\d]*[.])?[\d]+/, tokenType: TokenTypes.NUMBER_TYPE },
+  // Number (no sign here: "a-1" must be a, -, 1. The parser handles unary minus.)
+  { regex: /^(\d*\.)?\d+/, tokenType: TokenTypes.NUMBER_TYPE },
 
   
   // Boolean

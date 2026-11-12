@@ -48,7 +48,6 @@ export const executeCode = (code, setOutput) => {
     interpreter.interpret(ast)
     
   } catch (error) {
-    if(error.message === "process is not defined") return;
     setOutput(prev => [...prev, `AKLang Error: ${error.message}`])
   } finally {
     // Restore original console methods
